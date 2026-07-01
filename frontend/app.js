@@ -4,7 +4,7 @@
 // =========================================================================
 
 // 1. CẤU HÌNH ĐƯỜNG DẪN BACKEND API CHUNG
-const API_BASE_URL = "https://tech-store-fullstack-production.up.railway.app";
+const API_BASE_URL = 'https://tech-store-fullstack-production.up.railway.app';
 
 // Đọc Token và thông tin User hiện tại từ bộ nhớ trình duyệt localStorage
 let token = localStorage.getItem("token");
@@ -121,12 +121,12 @@ function updateNavbar() {
 
   if (token && currentUser) {
     let adminLink = '';
-    // Nếu tài khoản đăng nhập là admin thì chèn thêm nút truy cập trang Quản trị (admin.html)
-    if (currentUser.role_name === 'admin') {
+    const allowedRoles = ['admin', 'store_owner', 'manager', 'staff'];
+    if (currentUser && allowedRoles.includes(currentUser.role_name)) {
       adminLink = `
         <a href="admin.html" class="flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold transition-colors mr-2 border border-amber-500/30 px-2 py-1.5 rounded-lg bg-amber-500/10">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-          Quản trị Admin
+          Hệ thống Admin
         </a>
       `;
     }
@@ -259,30 +259,55 @@ async function loadProducts() {
         : `<button onclick="addToCart(${prod.id}, '${prod.product_name.replace(/'/g, "\\'")}', ${prod.price}, '${prod.image_url}')" class="flex-grow py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs transition-all hover-scale shadow border-0 cursor-pointer">Thêm vào giỏ</button>`;
 
       html += `
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover-scale flex flex-col justify-between">
+        <div class="group relative bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover-scale flex flex-col justify-between overflow-hidden">
           <div>
             <!-- Ảnh sản phẩm và tag danh mục -->
-            <div onclick="showProductDetail(${prod.id})" class="h-44 w-full bg-slate-100 rounded-xl overflow-hidden mb-3.5 relative cursor-pointer">
+            <div onclick="showProductDetail(${prod.id})" class="h-44 w-full bg-slate-100 rounded-xl overflow-hidden mb-3 relative cursor-pointer">
               <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" alt="${prod.product_name}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-350">
               ${isOutOfStock ? `<div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center"><span class="bg-rose-600 text-white font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">Hết hàng</span></div>` : ''}
               <span class="absolute top-2 left-2 bg-slate-950/80 text-sky-400 font-bold text-[9px] px-2 py-0.5 rounded tracking-wide uppercase">${prod.category_name}</span>
             </div>
             
-            <h3 onclick="showProductDetail(${prod.id})" class="font-extrabold text-slate-800 text-sm leading-snug line-clamp-2 min-h-[2.5rem] hover:text-sky-500 cursor-pointer transition-colors">${prod.product_name}</h3>
-            <p class="text-slate-400 text-[10px] mt-1 line-clamp-2 min-h-[1.5rem]">${prod.description || 'Chưa có thông số kỹ thuật chi tiết.'}</p>
+            <h3 onclick="showProductDetail(${prod.id})" class="font-extrabold text-slate-800 text-[18px] leading-snug line-clamp-2 min-h-[3rem] hover:text-sky-500 cursor-pointer transition-colors">${prod.product_name}</h3>
+            
+            <!-- Đánh giá sao chuyên nghiệp -->
+            <div class="flex items-center gap-1 mt-1">
+              <span class="text-amber-400 text-xs">★★★★★</span>
+              <span class="text-slate-400 text-[10px] font-bold">(4.8)</span>
+            </div>
+
+            <!-- Chữ mô tả lớn hơn, dễ đọc và tương phản tốt -->
+            <p class="text-slate-600 text-[14px] mt-2 line-clamp-2 min-h-[2.5rem] leading-relaxed">${prod.description || 'Chưa có thông số kỹ thuật chi tiết.'}</p>
           </div>
           
           <div class="mt-3.5 border-t border-slate-100 pt-3">
             <div class="flex items-end justify-between mb-3">
               <div>
                 <span class="text-[10px] text-slate-400 block font-semibold leading-none">Giá ưu đãi:</span>
-                <span class="text-base font-black text-sky-600">${formatCurrency(prod.price)}</span>
+                <span class="text-[20px] font-black text-sky-600">${formatCurrency(prod.price)}</span>
               </div>
               <span class="text-[10px] text-slate-400 font-bold">Kho: <strong class="text-slate-700 font-black">${prod.stock_quantity}</strong></span>
             </div>
             <div class="flex gap-2">
               ${buttonHtml}
               <button onclick="showProductDetail(${prod.id})" class="px-2.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs border-0 cursor-pointer">Chi tiết</button>
+            </div>
+          </div>
+
+          <!-- Hover Detail Overlay (pointer-events-none) -->
+          <div class="absolute inset-0 bg-slate-955/95 text-white p-5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between z-10 pointer-events-none">
+            <div>
+              <span class="text-[9px] text-sky-400 font-extrabold uppercase tracking-wider block mb-1">${prod.category_name}</span>
+              <h4 class="font-extrabold text-[15px] mb-3 leading-snug text-sky-300">${prod.product_name}</h4>
+              <div class="text-[11px] text-slate-350 space-y-1.5 leading-relaxed">
+                <p class="border-b border-slate-850 pb-1.5"><strong class="text-white">Cấu hình:</strong> ${prod.description || 'Thông số chi tiết cập nhật liên tục'}</p>
+                <p><strong class="text-white">Bảo hành:</strong> 12 tháng chính hãng</p>
+                <p><strong class="text-white">Tình trạng:</strong> ${prod.stock_quantity > 0 ? 'Còn hàng (Mới 100%)' : 'Hết hàng (Nhận đặt trước)'}</p>
+                <p><strong class="text-white">Chi nhánh:</strong> ${prod.store_name || 'Hệ thống Tech Store Việt Nam'}</p>
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-400 italic text-center border-t border-slate-850 pt-2">
+              Click vào chi tiết để xem thêm
             </div>
           </div>
         </div>
@@ -323,6 +348,15 @@ function addToCart(productId, name, price, imageUrl) {
   showToast(`Đã thêm "${name}" vào giỏ hàng.`, "success");
   updateCartBadge(); // Cập nhật lại số hiển thị trên icon giỏ hàng của Navbar
   renderMiniCart(); // Đồng bộ ngay với Popup Mini Cart
+
+  // Đồng bộ giỏ hàng lên server-side nếu người dùng đã đăng nhập
+  const token = localStorage.getItem("token");
+  if (token) {
+    fetchWithAuth("/api/cart", {
+      method: "POST",
+      body: JSON.stringify({ product_id: productId, quantity: 1 })
+    }).catch(err => console.error("Lỗi đồng bộ giỏ hàng lên server:", err));
+  }
 }
 
 // Hàm khởi tạo và lắng nghe ô nhập liệu tìm kiếm sản phẩm
@@ -585,6 +619,35 @@ async function showProductDetail(productId) {
       ? `<button disabled class="w-full py-3 rounded-lg bg-slate-100 text-slate-400 font-bold text-xs cursor-not-allowed border-0">Đã hết hàng tồn kho</button>`
       : `<button onclick="addToCart(${prod.id}, '${prod.product_name.replace(/'/g, "\\'")}', ${prod.price}, '${prod.image_url}'); closeProductDetailModal();" class="w-full py-3 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-xs shadow transition-all border-0 cursor-pointer">Thêm vào giỏ hàng</button>`;
 
+    // Tải sản phẩm liên quan (cùng danh mục)
+    let relatedHtml = "";
+    try {
+      const relResponse = await fetch(`${API_BASE_URL}/api/products?category_id=${prod.category_id}`);
+      if (relResponse.ok) {
+        const allInCat = await relResponse.json();
+        const relatedList = allInCat.filter(item => item.id !== prod.id).slice(0, 3);
+        
+        if (relatedList.length > 0) {
+          relatedHtml = `
+            <div class="mt-6 border-t border-slate-100 pt-5 col-span-full">
+              <h4 class="text-xs font-black uppercase text-slate-800 tracking-wider mb-3">Sản phẩm liên quan</h4>
+              <div class="grid grid-cols-3 gap-3">
+                ${relatedList.map(rp => `
+                  <div onclick="showProductDetail(${rp.id})" class="bg-slate-50 p-2 rounded-xl border border-slate-100 cursor-pointer hover:border-sky-500 transition-colors flex flex-col justify-between h-36">
+                    <img src="${rp.image_url}" class="h-16 w-full object-cover rounded-lg mb-1.5">
+                    <h5 class="font-extrabold text-slate-750 text-[10px] line-clamp-1 leading-snug">${rp.product_name}</h5>
+                    <span class="text-[10px] font-black text-sky-600 mt-1">${formatCurrency(rp.price)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+      }
+    } catch (err) {
+      console.error("Lỗi khi tải sản phẩm liên quan:", err);
+    }
+
     content.innerHTML = `
       <div class="h-64 md:h-full w-full bg-slate-100 rounded-xl overflow-hidden shadow-inner">
         <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" alt="${prod.product_name}" class="w-full h-full object-cover">
@@ -596,7 +659,7 @@ async function showProductDetail(productId) {
           
           <div class="text-xs text-slate-500 space-y-2 mb-4 leading-relaxed">
             <p><strong>Mô tả chi tiết:</strong></p>
-            <p class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[11px] leading-relaxed">${prod.description || 'Sản phẩm công nghệ cao cấp chính hãng từ đối tác Tech Store. Đảm bảo đầy đủ hóa đơn chứng từ và bảo hành toàn quốc.'}</p>
+            <p class="bg-slate-50 p-3.5 rounded-xl border border-slate-150 text-xs text-slate-700 font-medium leading-relaxed">${prod.description || 'Sản phẩm công nghệ cao cấp chính hãng từ đối tác Tech Store. Đảm bảo đầy đủ hóa đơn chứng từ và bảo hành toàn quốc.'}</p>
             <p>Chi nhánh cửa hàng: <span class="text-slate-800 font-bold">${prod.store_name || 'Tech Store Việt Nam'}</span></p>
             <p>Trạng thái tồn kho: <span class="font-bold ${isOutOfStock ? 'text-rose-600' : 'text-emerald-600'}">${isOutOfStock ? 'Hết hàng' : `Còn hàng (${prod.stock_quantity} chiếc)`}</span></p>
           </div>
@@ -610,6 +673,7 @@ async function showProductDetail(productId) {
           ${buttonHtml}
         </div>
       </div>
+      ${relatedHtml}
     `;
   } catch (error) {
     console.error("Lỗi lấy chi tiết sản phẩm:", error);

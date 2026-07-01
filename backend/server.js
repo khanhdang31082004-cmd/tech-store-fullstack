@@ -49,6 +49,7 @@ const dbConfig = {
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'tech_store',
+  charset: 'utf8mb4',
   waitForConnections: true, // Chờ đợi kết nối rảnh nếu hàng đợi đầy
   connectionLimit: 10, // Giới hạn tối đa 10 kết nối đồng thời để tránh quá tải MySQL
   queueLimit: 0
@@ -99,15 +100,40 @@ function authenticateToken(req, res, next) {
     next(); // Cho phép đi tiếp vào route API thực tế
   });
 }
-
 // Middleware kiểm tra tài khoản có quyền Admin (Quản trị viên) hay không
 function isAdmin(req, res, next) {
   if (!req.user || req.user.role_name !== 'admin') {
     return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Chỉ dành cho Admin.' });
   }
-  next(); // Nếu là admin thực sự thì cho phép đi tiếp
+  next();
 }
 
+// Middleware kiểm tra tài khoản có phải là Nhân viên trở lên không (admin, store_owner, manager, staff)
+function isStaff(req, res, next) {
+  const allowedRoles = ['admin', 'store_owner', 'manager', 'staff'];
+  if (!req.user || !allowedRoles.includes(req.user.role_name)) {
+    return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Chỉ dành cho nhân viên cửa hàng.' });
+  }
+  next();
+}
+
+// Middleware kiểm tra tài khoản có phải là Quản lý trở lên không (admin, store_owner, manager)
+function isManager(req, res, next) {
+  const allowedRoles = ['admin', 'store_owner', 'manager'];
+  if (!req.user || !allowedRoles.includes(req.user.role_name)) {
+    return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Chỉ dành cho quản lý hoặc chủ cửa hàng.' });
+  }
+  next();
+}
+
+// Middleware kiểm tra tài khoản có phải là Chủ cửa hàng trở lên không (admin, store_owner)
+function isStoreOwner(req, res, next) {
+  const allowedRoles = ['admin', 'store_owner'];
+  if (!req.user || !allowedRoles.includes(req.user.role_name)) {
+    return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Chỉ dành cho chủ cửa hàng.' });
+  }
+  next();
+}
 // =========================================================================
 // 5. ENDPOINT KIỂM TRA MÁY CHỦ (HEALTH CHECK)
 // =========================================================================
@@ -216,6 +242,10 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = users[0];
 
+    if (user.is_active === 0) {
+      return res.status(403).json({ message: 'Tài khoản của bạn đã bị khóa hoặc chưa được kích hoạt.' });
+    }
+
     // Kiểm tra mật khẩu theo 3 cách linh hoạt:
     // a) Đặc cách đăng nhập nhanh cho tài khoản demo với mật khẩu 123456
     const isDemoLogin = (username === 'admin' || username === 'user') && password === '123456';
@@ -245,7 +275,8 @@ app.post('/api/auth/login', async (req, res) => {
       username: user.username,
       email: user.email,
       role_id: user.role_id,
-      role_name: user.role_name
+      role_name: user.role_name,
+      store_id: user.store_id
     };
 
     // Tạo chữ ký số và mã hóa JWT Token có hiệu lực 24 giờ
@@ -263,7 +294,8 @@ app.post('/api/auth/login', async (req, res) => {
         username: user.username,
         email: user.email,
         role_id: user.role_id,
-        role_name: user.role_name
+        role_name: user.role_name,
+        store_id: user.store_id
       }
     });
   } catch (error) {
@@ -430,27 +462,37 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
 
 // API Gửi đơn đặt hàng mới (Kiểm tra kho, tính tiền, tạo đơn và chi tiết đơn hàng)
 app.post('/api/orders', authenticateToken, async (req, res) => {
-  const { shipping_address, items } = req.body; // items: [{product_id, quantity}]
+  const { recipient_name, recipient_phone, recipient_email, shipping_address, payment_method, notes, cccd, items } = req.body; // items: [{product_id, quantity}]
 
-  if (!shipping_address || !items || !Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ message: 'Thông tin đơn hàng không hợp lệ.' });
+  if (!recipient_name || !recipient_phone || !shipping_address || !items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ message: 'Thông tin đặt hàng không đầy đủ hoặc không hợp lệ.' });
   }
 
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction(); // Thực hiện giao dịch (Transaction) an toàn tránh Race Condition
 
-    // Tìm ID khách hàng tương ứng với tài khoản đăng nhập
+    // Tìm ID khách hàng tương ứng với tài khoản đăng nhập, tạo mới nếu chưa có
+    let customerId;
     const [customers] = await connection.query(
       'SELECT id FROM customers WHERE user_id = ?',
       [req.user.id]
     );
 
     if (customers.length === 0) {
-      connection.release();
-      return res.status(404).json({ message: 'Không tìm thấy hồ sơ khách hàng.' });
+      const [newCust] = await connection.query(
+        'INSERT INTO customers (user_id, full_name, phone, address) VALUES (?, ?, ?, ?)',
+        [req.user.id, recipient_name, recipient_phone, shipping_address]
+      );
+      customerId = newCust.insertId;
+    } else {
+      customerId = customers[0].id;
+      // Cập nhật thông tin khách hàng theo đơn hàng mới nhất
+      await connection.query(
+        'UPDATE customers SET full_name = ?, phone = ?, address = ? WHERE id = ?',
+        [recipient_name, recipient_phone, shipping_address, customerId]
+      );
     }
-    const customerId = customers[0].id;
 
     let totalAmount = 0;
     const orderItemsDetails = [];
@@ -489,10 +531,11 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
       );
     }
 
-    // Tạo đơn hàng mới trong bảng orders
+    // Tạo đơn hàng mới trong bảng orders với đầy đủ thông tin người nhận
     const [orderResult] = await connection.query(
-      'INSERT INTO orders (customer_id, total_amount, status, shipping_address) VALUES (?, ?, "Pending", ?)',
-      [customerId, totalAmount, shipping_address]
+      `INSERT INTO orders (customer_id, total_amount, status, shipping_address, recipient_name, recipient_phone, recipient_email, payment_method, notes, cccd) 
+       VALUES (?, ?, "Pending", ?, ?, ?, ?, ?, ?, ?)`,
+      [customerId, totalAmount, shipping_address, recipient_name, recipient_phone, recipient_email || null, payment_method || 'cod', notes || null, cccd || null]
     );
 
     const newOrderId = orderResult.insertId;
@@ -567,29 +610,46 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
 // 6.3 API CHỈ DÀNH CHO QUẢN TRỊ VIÊN (ADMIN API)
 // ----------------------------------------------------
 
-// Admin - Xem danh sách sản phẩm quản trị
-app.get('/api/admin/products', authenticateToken, isAdmin, async (req, res) => {
+// Admin - Xem danh sách sản phẩm quản trị (Nhân viên trở lên có thể xem)
+app.get('/api/admin/products', authenticateToken, isStaff, async (req, res) => {
   try {
-    const [products] = await pool.query(
-      `SELECT p.*, c.category_name, s.store_name 
-       FROM products p
-       LEFT JOIN categories c ON p.category_id = c.id
-       LEFT JOIN stores s ON p.store_id = s.id
-       ORDER BY p.id DESC`
-    );
+    let products;
+    if (req.user.role_name === 'admin') {
+      const [rows] = await pool.query(
+        `SELECT p.*, c.category_name, s.store_name 
+         FROM products p
+         LEFT JOIN categories c ON p.category_id = c.id
+         LEFT JOIN stores s ON p.store_id = s.id
+         ORDER BY p.id DESC`
+      );
+      products = rows;
+    } else {
+      const [rows] = await pool.query(
+        `SELECT p.*, c.category_name, s.store_name 
+         FROM products p
+         LEFT JOIN categories c ON p.category_id = c.id
+         LEFT JOIN stores s ON p.store_id = s.id
+         WHERE p.store_id = ?
+         ORDER BY p.id DESC`,
+        [req.user.store_id]
+      );
+      products = rows;
+    }
     return res.status(200).json(products);
   } catch (error) {
     return res.status(500).json({ message: 'Lỗi tải danh sách sản phẩm quản trị.', error: error.message });
   }
 });
 
-// Admin - Thêm sản phẩm công nghệ mới
-app.post('/api/admin/products', authenticateToken, isAdmin, async (req, res) => {
+// Admin - Thêm sản phẩm công nghệ mới (Quản lý trở lên mới được thêm)
+app.post('/api/admin/products', authenticateToken, isManager, async (req, res) => {
   const { product_name, description, price, image_url, stock_quantity, category_id, store_id } = req.body;
 
   if (!product_name || price === undefined || stock_quantity === undefined) {
     return res.status(400).json({ message: 'Tên sản phẩm, giá bán và số lượng kho là bắt buộc.' });
   }
+
+  const finalStoreId = req.user.role_name === 'admin' ? (store_id ? parseInt(store_id) : 1) : req.user.store_id;
 
   try {
     const [result] = await pool.query(
@@ -602,7 +662,7 @@ app.post('/api/admin/products', authenticateToken, isAdmin, async (req, res) => 
         image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500', 
         parseInt(stock_quantity), 
         category_id ? parseInt(category_id) : null, 
-        store_id ? parseInt(store_id) : 1
+        finalStoreId
       ]
     );
 
@@ -612,22 +672,28 @@ app.post('/api/admin/products', authenticateToken, isAdmin, async (req, res) => 
   }
 });
 
-// Admin - Cập nhật thông tin sản phẩm
-app.put('/api/admin/products/:id', authenticateToken, isAdmin, async (req, res) => {
+// Admin - Cập nhật thông tin sản phẩm (Quản lý trở lên mới được sửa)
+app.put('/api/admin/products/:id', authenticateToken, isManager, async (req, res) => {
   const productId = req.params.id;
   const { product_name, description, price, image_url, stock_quantity, category_id, store_id } = req.body;
 
   try {
-    const [check] = await pool.query('SELECT id FROM products WHERE id = ?', [productId]);
+    const [check] = await pool.query('SELECT id, store_id FROM products WHERE id = ?', [productId]);
     if (check.length === 0) {
       return res.status(404).json({ message: 'Sản phẩm không tồn tại.' });
     }
+
+    if (req.user.role_name !== 'admin' && check[0].store_id !== req.user.store_id) {
+      return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Bạn không thể sửa sản phẩm của chi nhánh khác.' });
+    }
+
+    const finalStoreId = req.user.role_name === 'admin' ? (store_id ? parseInt(store_id) : check[0].store_id) : req.user.store_id;
 
     await pool.query(
       `UPDATE products 
        SET product_name = ?, description = ?, price = ?, image_url = ?, stock_quantity = ?, category_id = ?, store_id = ? 
        WHERE id = ?`,
-      [product_name, description || null, parseFloat(price), image_url || null, parseInt(stock_quantity), category_id ? parseInt(category_id) : null, store_id ? parseInt(store_id) : null, productId]
+      [product_name, description || null, parseFloat(price), image_url || null, parseInt(stock_quantity), category_id ? parseInt(category_id) : null, finalStoreId, productId]
     );
 
     return res.status(200).json({ message: 'Cập nhật thông tin sản phẩm thành công!' });
@@ -636,13 +702,17 @@ app.put('/api/admin/products/:id', authenticateToken, isAdmin, async (req, res) 
   }
 });
 
-// Admin - Xóa sản phẩm khỏi hệ thống
-app.delete('/api/admin/products/:id', authenticateToken, isAdmin, async (req, res) => {
+// Admin - Xóa sản phẩm khỏi hệ thống (Quản lý trở lên mới được xóa)
+app.delete('/api/admin/products/:id', authenticateToken, isManager, async (req, res) => {
   const productId = req.params.id;
   try {
-    const [check] = await pool.query('SELECT id FROM products WHERE id = ?', [productId]);
+    const [check] = await pool.query('SELECT id, store_id FROM products WHERE id = ?', [productId]);
     if (check.length === 0) {
       return res.status(404).json({ message: 'Sản phẩm không tồn tại.' });
+    }
+
+    if (req.user.role_name !== 'admin' && check[0].store_id !== req.user.store_id) {
+      return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Bạn không thể xóa sản phẩm của chi nhánh khác.' });
     }
 
     await pool.query('DELETE FROM products WHERE id = ?', [productId]);
@@ -652,26 +722,56 @@ app.delete('/api/admin/products/:id', authenticateToken, isAdmin, async (req, re
   }
 });
 
-// Admin - Xem danh sách toàn bộ các đơn hàng của khách
-app.get('/api/admin/orders', authenticateToken, isAdmin, async (req, res) => {
+// Admin - Xem danh sách toàn bộ các đơn hàng của khách (Nhân viên trở lên có thể xem)
+app.get('/api/admin/orders', authenticateToken, isStaff, async (req, res) => {
   try {
-    const [orders] = await pool.query(
-      `SELECT o.*, c.full_name, c.phone, u.username, u.email 
-       FROM orders o
-       JOIN customers c ON o.customer_id = c.id
-       JOIN users u ON c.user_id = u.id
-       ORDER BY o.id DESC`
-    );
+    let orders;
+    if (req.user.role_name === 'admin') {
+      const [rows] = await pool.query(
+        `SELECT o.*, c.full_name, c.phone, u.username, u.email 
+         FROM orders o
+         JOIN customers c ON o.customer_id = c.id
+         JOIN users u ON c.user_id = u.id
+         ORDER BY o.id DESC`
+      );
+      orders = rows;
+    } else {
+      const [rows] = await pool.query(
+        `SELECT DISTINCT o.*, c.full_name, c.phone, u.username, u.email 
+         FROM orders o
+         JOIN customers c ON o.customer_id = c.id
+         JOIN users u ON c.user_id = u.id
+         JOIN order_details od ON o.id = od.order_id
+         JOIN products p ON od.product_id = p.id
+         WHERE p.store_id = ?
+         ORDER BY o.id DESC`,
+        [req.user.store_id]
+      );
+      orders = rows;
+    }
 
     const ordersWithDetails = [];
     for (const order of orders) {
-      const [details] = await pool.query(
-        `SELECT od.*, p.product_name 
-         FROM order_details od
-         JOIN products p ON od.product_id = p.id
-         WHERE od.order_id = ?`,
-        [order.id]
-      );
+      let details;
+      if (req.user.role_name === 'admin') {
+        const [rows] = await pool.query(
+          `SELECT od.*, p.product_name 
+           FROM order_details od
+           JOIN products p ON od.product_id = p.id
+           WHERE od.order_id = ?`,
+          [order.id]
+        );
+        details = rows;
+      } else {
+        const [rows] = await pool.query(
+          `SELECT od.*, p.product_name 
+           FROM order_details od
+           JOIN products p ON od.product_id = p.id
+           WHERE od.order_id = ? AND p.store_id = ?`,
+          [order.id, req.user.store_id]
+        );
+        details = rows;
+      }
       ordersWithDetails.push({ ...order, items: details });
     }
 
@@ -682,7 +782,7 @@ app.get('/api/admin/orders', authenticateToken, isAdmin, async (req, res) => {
 });
 
 // Admin - Cập nhật trạng thái đơn hàng (Tự động hoàn trả kho nếu hủy đơn)
-app.put('/api/admin/orders/:id', authenticateToken, isAdmin, async (req, res) => {
+app.put('/api/admin/orders/:id', authenticateToken, isStaff, async (req, res) => {
   const orderId = req.params.id;
   const { status } = req.body; // 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'
 
@@ -690,6 +790,19 @@ app.put('/api/admin/orders/:id', authenticateToken, isAdmin, async (req, res) =>
     const [check] = await pool.query('SELECT id, status FROM orders WHERE id = ?', [orderId]);
     if (check.length === 0) {
       return res.status(404).json({ message: 'Đơn hàng không tồn tại.' });
+    }
+
+    if (req.user.role_name !== 'admin') {
+      // Kiểm tra xem đơn hàng có chứa sản phẩm thuộc chi nhánh của nhân viên không
+      const [hasItems] = await pool.query(
+        `SELECT od.id FROM order_details od
+         JOIN products p ON od.product_id = p.id
+         WHERE od.order_id = ? AND p.store_id = ?`,
+        [orderId, req.user.store_id]
+      );
+      if (hasItems.length === 0) {
+        return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Đơn hàng này không thuộc chi nhánh của bạn.' });
+      }
     }
 
     const currentStatus = check[0].status;
@@ -724,63 +837,185 @@ app.put('/api/admin/orders/:id', authenticateToken, isAdmin, async (req, res) =>
 });
 
 // Admin - API Lấy dữ liệu thống kê Dashboard (Doanh thu, Top bán chạy, Đơn đặt mới)
-app.get('/api/admin/dashboard', authenticateToken, isAdmin, async (req, res) => {
+app.get('/api/admin/dashboard', authenticateToken, isStaff, async (req, res) => {
   try {
+    const isSysAdmin = req.user.role_name === 'admin';
+    const storeId = req.user.store_id;
+
     // 1. Tổng doanh thu (Chỉ tính các đơn hàng có trạng thái Completed)
-    const [revenueResult] = await pool.query(
-      'SELECT SUM(total_amount) AS total_revenue FROM orders WHERE status = "Completed"'
-    );
-    const totalRevenue = revenueResult[0].total_revenue || 0;
+    let totalRevenue = 0;
+    if (isSysAdmin) {
+      const [result] = await pool.query('SELECT SUM(total_amount) AS total_revenue FROM orders WHERE status = "Completed"');
+      totalRevenue = result[0].total_revenue || 0;
+    } else {
+      const [result] = await pool.query(
+        `SELECT SUM(od.quantity * od.price) AS total_revenue 
+         FROM order_details od 
+         JOIN products p ON od.product_id = p.id 
+         JOIN orders o ON od.order_id = o.id 
+         WHERE o.status = "Completed" AND p.store_id = ?`,
+        [storeId]
+      );
+      totalRevenue = result[0].total_revenue || 0;
+    }
 
     // 2. Tổng số đơn hàng
-    const [orderCountResult] = await pool.query('SELECT COUNT(id) AS total_orders FROM orders');
-    const totalOrders = orderCountResult[0].total_orders || 0;
+    let totalOrders = 0;
+    if (isSysAdmin) {
+      const [result] = await pool.query('SELECT COUNT(id) AS total_orders FROM orders');
+      totalOrders = result[0].total_orders || 0;
+    } else {
+      const [result] = await pool.query(
+        `SELECT COUNT(DISTINCT o.id) AS total_orders 
+         FROM orders o 
+         JOIN order_details od ON o.id = od.order_id 
+         JOIN products p ON od.product_id = p.id 
+         WHERE p.store_id = ?`,
+        [storeId]
+      );
+      totalOrders = result[0].total_orders || 0;
+    }
 
     // 3. Tổng số sản phẩm
-    const [productCountResult] = await pool.query('SELECT COUNT(id) AS total_products FROM products');
-    const totalProducts = productCountResult[0].total_products || 0;
+    let totalProducts = 0;
+    if (isSysAdmin) {
+      const [result] = await pool.query('SELECT COUNT(id) AS total_products FROM products');
+      totalProducts = result[0].total_products || 0;
+    } else {
+      const [result] = await pool.query('SELECT COUNT(id) AS total_products FROM products WHERE store_id = ?', [storeId]);
+      totalProducts = result[0].total_products || 0;
+    }
 
-    // 4. Tổng số lượng khách hàng đã đăng ký (Bỏ qua tài khoản admin)
-    const [customerCountResult] = await pool.query(
-      'SELECT COUNT(c.id) AS total_customers FROM customers c JOIN users u ON c.user_id = u.id WHERE u.role_id != 1'
-    );
-    const totalCustomers = customerCountResult[0].total_customers || 0;
+    // 4. Tổng số lượng khách hàng
+    let totalCustomers = 0;
+    if (isSysAdmin) {
+      const [result] = await pool.query(
+        'SELECT COUNT(c.id) AS total_customers FROM customers c JOIN users u ON c.user_id = u.id WHERE u.role_id != 1'
+      );
+      totalCustomers = result[0].total_customers || 0;
+    } else {
+      const [result] = await pool.query(
+        `SELECT COUNT(DISTINCT o.customer_id) AS total_customers 
+         FROM orders o 
+         JOIN order_details od ON o.id = od.order_id 
+         JOIN products p ON od.product_id = p.id 
+         WHERE p.store_id = ?`,
+        [storeId]
+      );
+      totalCustomers = result[0].total_customers || 0;
+    }
 
     // 5. Thống kê số lượng đơn đặt theo trạng thái
-    const [statusStats] = await pool.query('SELECT status, COUNT(id) AS count FROM orders GROUP BY status');
+    let statusStats;
+    if (isSysAdmin) {
+      const [stats] = await pool.query('SELECT status, COUNT(id) AS count FROM orders GROUP BY status');
+      statusStats = stats;
+    } else {
+      const [stats] = await pool.query(
+        `SELECT o.status, COUNT(DISTINCT o.id) AS count 
+         FROM orders o 
+         JOIN order_details od ON o.id = od.order_id 
+         JOIN products p ON od.product_id = p.id 
+         WHERE p.store_id = ? 
+         GROUP BY o.status`,
+        [storeId]
+      );
+      statusStats = stats;
+    }
 
-    // 6. Top 5 sản phẩm công nghệ bán chạy nhất
-    const [topProducts] = await pool.query(
-      `SELECT p.id, p.product_name, SUM(od.quantity) AS sold_quantity, SUM(od.quantity * od.price) AS total_sales, p.price, p.image_url
-       FROM order_details od
-       JOIN products p ON od.product_id = p.id
-       JOIN orders o ON od.order_id = o.id
-       WHERE o.status = "Completed"
-       GROUP BY p.id
-       ORDER BY sold_quantity DESC
-       LIMIT 5`
-    );
+    // 6. Top 5 sản phẩm bán chạy nhất
+    let topProducts;
+    if (isSysAdmin) {
+      const [rows] = await pool.query(
+        `SELECT p.id, p.product_name, SUM(od.quantity) AS sold_quantity, SUM(od.quantity * od.price) AS total_sales, p.price, p.image_url
+         FROM order_details od
+         JOIN products p ON od.product_id = p.id
+         JOIN orders o ON od.order_id = o.id
+         WHERE o.status = "Completed"
+         GROUP BY p.id
+         ORDER BY sold_quantity DESC
+         LIMIT 5`
+      );
+      topProducts = rows;
+    } else {
+      const [rows] = await pool.query(
+        `SELECT p.id, p.product_name, SUM(od.quantity) AS sold_quantity, SUM(od.quantity * od.price) AS total_sales, p.price, p.image_url
+         FROM order_details od
+         JOIN products p ON od.product_id = p.id
+         JOIN orders o ON od.order_id = o.id
+         WHERE o.status = "Completed" AND p.store_id = ?
+         GROUP BY p.id
+         ORDER BY sold_quantity DESC
+         LIMIT 5`,
+        [storeId]
+      );
+      topProducts = rows;
+    }
 
     // 7. Doanh thu phân chia theo Danh mục thiết bị
-    const [categoryStats] = await pool.query(
-      `SELECT c.category_name, SUM(od.quantity * od.price) AS revenue
-       FROM order_details od
-       JOIN products p ON od.product_id = p.id
-       JOIN categories c ON p.category_id = c.id
-       JOIN orders o ON od.order_id = o.id
-       WHERE o.status = "Completed"
-       GROUP BY c.id
-       ORDER BY revenue DESC`
-    );
+    let categoryStats;
+    if (isSysAdmin) {
+      const [rows] = await pool.query(
+        `SELECT c.category_name, SUM(od.quantity * od.price) AS revenue
+         FROM order_details od
+         JOIN products p ON od.product_id = p.id
+         JOIN categories c ON p.category_id = c.id
+         JOIN orders o ON od.order_id = o.id
+         WHERE o.status = "Completed"
+         GROUP BY c.id
+         ORDER BY revenue DESC`
+      );
+      categoryStats = rows;
+    } else {
+      const [rows] = await pool.query(
+        `SELECT c.category_name, SUM(od.quantity * od.price) AS revenue
+         FROM order_details od
+         JOIN products p ON od.product_id = p.id
+         JOIN categories c ON p.category_id = c.id
+         JOIN orders o ON od.order_id = o.id
+         WHERE o.status = "Completed" AND p.store_id = ?
+         GROUP BY c.id
+         ORDER BY revenue DESC`,
+        [storeId]
+      );
+      categoryStats = rows;
+    }
 
     // 8. 5 đơn hàng mới nhất phát sinh gần đây
-    const [recentOrders] = await pool.query(
-      `SELECT o.id, o.total_amount, o.status, o.created_at, c.full_name
-       FROM orders o
-       JOIN customers c ON o.customer_id = c.id
-       ORDER BY o.id DESC
-       LIMIT 5`
-    );
+    let recentOrders;
+    if (isSysAdmin) {
+      const [rows] = await pool.query(
+        `SELECT o.id, o.total_amount, o.status, o.created_at, c.full_name
+         FROM orders o
+         JOIN customers c ON o.customer_id = c.id
+         ORDER BY o.id DESC
+         LIMIT 5`
+      );
+      recentOrders = rows;
+    } else {
+      const [rows] = await pool.query(
+        `SELECT DISTINCT o.id, o.total_amount, o.status, o.created_at, c.full_name
+         FROM orders o
+         JOIN customers c ON o.customer_id = c.id
+         JOIN order_details od ON o.id = od.order_id
+         JOIN products p ON od.product_id = p.id
+         WHERE p.store_id = ?
+         ORDER BY o.id DESC
+         LIMIT 5`,
+        [storeId]
+      );
+      recentOrders = rows;
+    }
+
+    // 9. Sản phẩm sắp hết hàng (tồn kho dưới 10)
+    let lowStockProducts = [];
+    if (isSysAdmin) {
+      const [rows] = await pool.query('SELECT id, product_name, stock_quantity FROM products WHERE stock_quantity <= 10 ORDER BY stock_quantity ASC LIMIT 10');
+      lowStockProducts = rows;
+    } else {
+      const [rows] = await pool.query('SELECT id, product_name, stock_quantity FROM products WHERE store_id = ? AND stock_quantity <= 10 ORDER BY stock_quantity ASC LIMIT 10', [storeId]);
+      lowStockProducts = rows;
+    }
 
     return res.status(200).json({
       revenue: parseFloat(totalRevenue),
@@ -790,11 +1025,294 @@ app.get('/api/admin/dashboard', authenticateToken, isAdmin, async (req, res) => 
       orderStatusStats: statusStats,
       topSellingProducts: topProducts,
       revenueByCategory: categoryStats,
-      recentOrders: recentOrders
+      recentOrders: recentOrders,
+      lowStockProducts: lowStockProducts
     });
   } catch (error) {
     console.error('Lấy thông tin dashboard lỗi:', error);
     return res.status(500).json({ message: 'Không thể tính toán dữ liệu Dashboard.', error: error.message });
+  }
+});
+
+// ----------------------------------------------------
+// 6.4 API GIỎ HÀNG SERVER-SIDE (CART API)
+// ----------------------------------------------------
+
+// Lấy danh sách sản phẩm trong giỏ hàng của user
+app.get('/api/cart', authenticateToken, async (req, res) => {
+  try {
+    const [cartItems] = await pool.query(
+      `SELECT c.id, c.product_id, c.quantity, p.product_name, p.price, p.image_url, p.stock_quantity, cat.category_name
+       FROM cart c
+       JOIN products p ON c.product_id = p.id
+       LEFT JOIN categories cat ON p.category_id = cat.id
+       WHERE c.user_id = ?`,
+      [req.user.id]
+    );
+    return res.status(200).json(cartItems);
+  } catch (error) {
+    return res.status(500).json({ message: 'Không thể tải giỏ hàng.', error: error.message });
+  }
+});
+
+// Thêm sản phẩm vào giỏ hàng
+app.post('/api/cart', authenticateToken, async (req, res) => {
+  const { product_id, quantity } = req.body;
+  if (!product_id) {
+    return res.status(400).json({ message: 'product_id là bắt buộc.' });
+  }
+  const qty = parseInt(quantity || 1);
+
+  try {
+    const [productCheck] = await pool.query('SELECT stock_quantity FROM products WHERE id = ?', [product_id]);
+    if (productCheck.length === 0) {
+      return res.status(404).json({ message: 'Sản phẩm không tồn tại.' });
+    }
+
+    const [existing] = await pool.query('SELECT id, quantity FROM cart WHERE user_id = ? AND product_id = ?', [req.user.id, product_id]);
+
+    if (existing.length > 0) {
+      const newQty = existing[0].quantity + qty;
+      if (newQty > productCheck[0].stock_quantity) {
+        return res.status(400).json({ message: `Vượt quá số lượng tồn kho (Còn lại: ${productCheck[0].stock_quantity})` });
+      }
+      await pool.query('UPDATE cart SET quantity = ? WHERE id = ?', [newQty, existing[0].id]);
+      return res.status(200).json({ message: 'Cập nhật số lượng giỏ hàng thành công!' });
+    } else {
+      if (qty > productCheck[0].stock_quantity) {
+        return res.status(400).json({ message: `Vượt quá số lượng tồn kho (Còn lại: ${productCheck[0].stock_quantity})` });
+      }
+      await pool.query('INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)', [req.user.id, product_id, qty]);
+      return res.status(201).json({ message: 'Thêm vào giỏ hàng thành công!' });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi thêm sản phẩm vào giỏ hàng.', error: error.message });
+  }
+});
+
+// Cập nhật số lượng của một mặt hàng trong giỏ
+app.put('/api/cart/:id', authenticateToken, async (req, res) => {
+  const cartItemId = req.params.id;
+  const { quantity } = req.body;
+
+  if (quantity === undefined || parseInt(quantity) <= 0) {
+    return res.status(400).json({ message: 'Số lượng phải lớn hơn 0.' });
+  }
+
+  try {
+    const [cartCheck] = await pool.query('SELECT product_id FROM cart WHERE id = ? AND user_id = ?', [cartItemId, req.user.id]);
+    if (cartCheck.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy sản phẩm này trong giỏ hàng.' });
+    }
+
+    const productId = cartCheck[0].product_id;
+    const [productCheck] = await pool.query('SELECT stock_quantity FROM products WHERE id = ?', [productId]);
+
+    if (parseInt(quantity) > productCheck[0].stock_quantity) {
+      return res.status(400).json({ message: `Vượt quá số lượng tồn kho (Còn lại: ${productCheck[0].stock_quantity})` });
+    }
+
+    await pool.query('UPDATE cart SET quantity = ? WHERE id = ? AND user_id = ?', [parseInt(quantity), cartItemId, req.user.id]);
+    return res.status(200).json({ message: 'Cập nhật số lượng thành công!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi cập nhật giỏ hàng.', error: error.message });
+  }
+});
+
+// Xóa một mặt hàng khỏi giỏ
+app.delete('/api/cart/:id', authenticateToken, async (req, res) => {
+  const cartItemId = req.params.id;
+  try {
+    const [result] = await pool.query('DELETE FROM cart WHERE id = ? AND user_id = ?', [cartItemId, req.user.id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy sản phẩm này trong giỏ hàng.' });
+    }
+    return res.status(200).json({ message: 'Xóa sản phẩm khỏi giỏ hàng thành công!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi xóa sản phẩm khỏi giỏ hàng.', error: error.message });
+  }
+});
+
+// Xóa sạch giỏ hàng
+app.delete('/api/cart', authenticateToken, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM cart WHERE user_id = ?', [req.user.id]);
+    return res.status(200).json({ message: 'Đã xóa sạch giỏ hàng!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi làm trống giỏ hàng.', error: error.message });
+  }
+});
+
+// ----------------------------------------------------
+// 6.5 API QUẢN LÝ TÀI KHOẢN (USER MANAGEMENT API - ADMIN ONLY)
+// ----------------------------------------------------
+
+// Lấy danh sách toàn bộ tài khoản
+app.get('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const [users] = await pool.query(
+      `SELECT u.id, u.username, u.email, u.role_id, r.role_name, u.store_id, s.store_name, u.is_active, u.created_at
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       LEFT JOIN stores s ON u.store_id = s.id
+       ORDER BY u.id DESC`
+    );
+    return res.status(200).json(users);
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi tải danh sách người dùng.', error: error.message });
+  }
+});
+
+// Admin tạo tài khoản nhân viên / quản lý / chủ cửa hàng mới
+app.post('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
+  const { username, password, email, role_id, store_id } = req.body;
+  if (!username || !password || !email || !role_id) {
+    return res.status(400).json({ message: 'Thiếu thông tin bắt buộc để tạo tài khoản.' });
+  }
+
+  try {
+    const [existing] = await pool.query('SELECT id FROM users WHERE username = ? OR email = ?', [username, email]);
+    if (existing.length > 0) {
+      return res.status(409).json({ message: 'Tên đăng nhập hoặc Email đã tồn tại.' });
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
+    await pool.query(
+      'INSERT INTO users (username, password, email, role_id, store_id, is_active) VALUES (?, ?, ?, ?, ?, 1)',
+      [username, hashedPassword, email, parseInt(role_id), store_id ? parseInt(store_id) : null]
+    );
+
+    return res.status(201).json({ message: 'Tạo tài khoản thành công!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi tạo tài khoản.', error: error.message });
+  }
+});
+
+// Admin cập nhật quyền / thông tin tài khoản / khóa tài khoản
+app.put('/api/admin/users/:id', authenticateToken, isAdmin, async (req, res) => {
+  const userId = req.params.id;
+  const { role_id, store_id, is_active } = req.body;
+
+  try {
+    const [check] = await pool.query('SELECT id FROM users WHERE id = ?', [userId]);
+    if (check.length === 0) {
+      return res.status(404).json({ message: 'Tài khoản không tồn tại.' });
+    }
+
+    await pool.query(
+      `UPDATE users 
+       SET role_id = COALESCE(?, role_id), store_id = ?, is_active = COALESCE(?, is_active) 
+       WHERE id = ?`,
+      [role_id ? parseInt(role_id) : null, store_id ? parseInt(store_id) : null, is_active !== undefined ? parseInt(is_active) : null, userId]
+    );
+
+    return res.status(200).json({ message: 'Cập nhật tài khoản thành công!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi cập nhật tài khoản.', error: error.message });
+  }
+});
+
+// Admin xóa tài khoản khỏi hệ thống
+app.delete('/api/admin/users/:id', authenticateToken, isAdmin, async (req, res) => {
+  const userId = req.params.id;
+  if (parseInt(userId) === req.user.id) {
+    return res.status(400).json({ message: 'Bạn không thể tự xóa tài khoản của chính mình.' });
+  }
+
+  try {
+    await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+    return res.status(200).json({ message: 'Xóa tài khoản thành công!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Không thể xóa tài khoản này.', error: error.message });
+  }
+});
+
+// ----------------------------------------------------
+// 6.6 API QUẢN LÝ CỬA HÀNG CHI NHÁNH (STORE MANAGEMENT API)
+// ----------------------------------------------------
+
+// Lấy danh sách toàn bộ cửa hàng chi nhánh
+app.get('/api/admin/stores', authenticateToken, isStaff, async (req, res) => {
+  try {
+    const [stores] = await pool.query('SELECT * FROM stores ORDER BY id DESC');
+    return res.status(200).json(stores);
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi tải danh sách cửa hàng.', error: error.message });
+  }
+});
+
+// Admin tạo cửa hàng mới
+app.post('/api/admin/stores', authenticateToken, isAdmin, async (req, res) => {
+  const { store_name, address, phone } = req.body;
+  if (!store_name || !address) {
+    return res.status(400).json({ message: 'Tên cửa hàng và địa chỉ là bắt buộc.' });
+  }
+
+  try {
+    await pool.query(
+      'INSERT INTO stores (store_name, address, phone, status) VALUES (?, ?, ?, "active")',
+      [store_name, address, phone || null]
+    );
+    return res.status(201).json({ message: 'Tạo cửa hàng mới thành công!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi tạo cửa hàng.', error: error.message });
+  }
+});
+
+// Admin cập nhật thông tin cửa hàng
+app.put('/api/admin/stores/:id', authenticateToken, isAdmin, async (req, res) => {
+  const storeId = req.params.id;
+  const { store_name, address, phone, status } = req.body;
+
+  try {
+    const [check] = await pool.query('SELECT id FROM stores WHERE id = ?', [storeId]);
+    if (check.length === 0) {
+      return res.status(404).json({ message: 'Cửa hàng không tồn tại.' });
+    }
+
+    await pool.query(
+      `UPDATE stores 
+       SET store_name = COALESCE(?, store_name), address = COALESCE(?, address), phone = COALESCE(?, phone), status = COALESCE(?, status) 
+       WHERE id = ?`,
+      [store_name || null, address || null, phone || null, status || null, storeId]
+    );
+
+    return res.status(200).json({ message: 'Cập nhật cửa hàng thành công!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi cập nhật cửa hàng.', error: error.message });
+  }
+});
+
+// Admin duyệt / khóa cửa hàng
+app.put('/api/admin/stores/:id/status', authenticateToken, isAdmin, async (req, res) => {
+  const storeId = req.params.id;
+  const { status } = req.body; // 'active', 'suspended', 'pending'
+
+  if (!status || !['active', 'suspended', 'pending'].includes(status)) {
+    return res.status(400).json({ message: 'Trạng thái cửa hàng không hợp lệ.' });
+  }
+
+  try {
+    const [result] = await pool.query('UPDATE stores SET status = ? WHERE id = ?', [status, storeId]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Cửa hàng không tồn tại.' });
+    }
+    return res.status(200).json({ message: `Cập nhật trạng thái cửa hàng thành công: ${status}` });
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi cập nhật trạng thái cửa hàng.', error: error.message });
+  }
+});
+
+// Admin xóa cửa hàng chi nhánh
+app.delete('/api/admin/stores/:id', authenticateToken, isAdmin, async (req, res) => {
+  const storeId = req.params.id;
+  try {
+    await pool.query('DELETE FROM stores WHERE id = ?', [storeId]);
+    return res.status(200).json({ message: 'Xóa cửa hàng thành công!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Không thể xóa cửa hàng do có sản phẩm hoặc tài khoản liên quan.', error: error.message });
   }
 });
 

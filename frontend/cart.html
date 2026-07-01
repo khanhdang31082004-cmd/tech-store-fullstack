@@ -119,13 +119,39 @@
               <label for="checkout-fullname" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Họ tên người nhận *</label>
               <input type="text" id="checkout-fullname" required class="w-full bg-white border border-slate-350 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
             </div>
-            <div>
-              <label for="checkout-phone" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Số điện thoại *</label>
-              <input type="tel" id="checkout-phone" required class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="checkout-phone" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Số điện thoại *</label>
+                <input type="tel" id="checkout-phone" required class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+              </div>
+              <div>
+                <label for="checkout-email" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Địa chỉ Email người nhận</label>
+                <input type="email" id="checkout-email" class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="để nhận hóa đơn (nếu có)...">
+              </div>
             </div>
             <div>
               <label for="checkout-address" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Địa chỉ giao hàng chi tiết *</label>
-              <textarea id="checkout-address" rows="3" required class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."></textarea>
+              <textarea id="checkout-address" rows="2" required class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."></textarea>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="checkout-payment" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Phương thức thanh toán *</label>
+                <select id="checkout-payment" required class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-850 cursor-pointer">
+                  <option value="cod">Thanh toán khi nhận hàng (COD)</option>
+                  <option value="bank_transfer">Chuyển khoản ngân hàng</option>
+                  <option value="e_wallet">Ví điện tử Demo (Momo/ZaloPay)</option>
+                </select>
+              </div>
+              <div>
+                <label for="checkout-cccd" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Số CCCD (Không bắt buộc)</label>
+                <input type="text" id="checkout-cccd" class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="Không bắt buộc">
+              </div>
+            </div>
+
+            <div>
+              <label for="checkout-notes" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Ghi chú đơn hàng</label>
+              <textarea id="checkout-notes" rows="2" class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="Ghi chú thời gian giao, hướng dẫn đường đi..."></textarea>
             </div>
             
             <button type="submit" class="w-full py-3.5 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-xs shadow-lg hover-scale glow-cyan transition-all flex items-center justify-center gap-2 border-0 cursor-pointer">

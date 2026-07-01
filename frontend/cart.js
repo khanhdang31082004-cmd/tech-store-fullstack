@@ -187,10 +187,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const fullname = document.getElementById("checkout-fullname").value.trim();
       const phone = document.getElementById("checkout-phone").value.trim();
+      const email = document.getElementById("checkout-email") ? document.getElementById("checkout-email").value.trim() : "";
       const address = document.getElementById("checkout-address").value.trim();
+      const payment = document.getElementById("checkout-payment") ? document.getElementById("checkout-payment").value : "cod";
+      const cccd = document.getElementById("checkout-cccd") ? document.getElementById("checkout-cccd").value.trim() : "";
+      const notes = document.getElementById("checkout-notes") ? document.getElementById("checkout-notes").value.trim() : "";
 
       if (!fullname || !phone || !address) {
-        showToast("Vui lòng nhập đầy đủ thông tin giao hàng.", "error");
+        showToast("Vui lòng nhập đầy đủ thông tin giao hàng bắt buộc.", "error");
         return;
       }
 
@@ -212,15 +216,21 @@ document.addEventListener("DOMContentLoaded", () => {
         quantity: item.quantity
       }));
 
-      // Gom thông tin người nhận vào địa chỉ giao hàng
-      const fullShippingAddress = `${fullname} - SĐT: ${phone} - Địa chỉ: ${address}`;
+      // Gom thông tin người nhận vào địa chỉ giao hàng đầy đủ cho khả năng hiển thị tương thích cũ nếu cần
+      const fullShippingAddress = `${address}`;
 
       try {
         // Gửi đơn đặt hàng lên API
         const response = await fetchWithAuth("/api/orders", {
           method: "POST",
           body: JSON.stringify({
+            recipient_name: fullname,
+            recipient_phone: phone,
+            recipient_email: email || null,
             shipping_address: fullShippingAddress,
+            payment_method: payment,
+            notes: notes || null,
+            cccd: cccd || null,
             items: items
           })
         });
@@ -231,8 +241,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         showToast("Đặt hàng thành công! Đang chuyển hướng...", "success");
         
-        // Làm sạch giỏ hàng trong localStorage sau khi đặt thành công
+        // Làm sạch giỏ hàng trong localStorage và server-side sau khi đặt thành công
         localStorage.removeItem("cart");
+        try {
+          await fetchWithAuth("/api/cart", { method: "DELETE" });
+        } catch (err) {
+          console.error("Lỗi xóa giỏ hàng server:", err);
+        }
+        
         renderCart();
         updateCartBadge();
 
@@ -243,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       } catch (error) {
         console.error("Lỗi đặt hàng:", error);
-        showToast(error.message, "error"); // Hiện chi tiết lỗi (ví dụ sản phẩm trong kho không đủ)
+        showToast(error.message, "error");
       }
     });
   }

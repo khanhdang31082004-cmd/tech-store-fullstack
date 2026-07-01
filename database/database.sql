@@ -3,6 +3,9 @@
 -- FILE SCRIPT: database.sql - Khởi tạo cấu trúc bảng và dữ liệu mẫu
 -- =========================================================================
 
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
 -- Khởi tạo Database cho hệ thống Tech Store với bảng mã UTF-8 hỗ trợ tiếng Việt đầy đủ
 CREATE DATABASE IF NOT EXISTS `tech_store` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `tech_store`;

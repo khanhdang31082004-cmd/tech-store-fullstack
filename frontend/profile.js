@@ -135,19 +135,21 @@ async function loadOrders() {
           <div class="px-5 divide-y divide-slate-100">
             ${itemsHtml}
           </div>
-
           <!-- Thông tin tóm tắt thanh toán và giao hàng -->
           <div class="bg-slate-50/50 px-5 py-4 border-t border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-            <div>
-              <span class="text-xs text-slate-400 block font-medium">Địa chỉ nhận hàng:</span>
-              <span class="text-xs text-slate-600 font-medium">${order.shipping_address}</span>
+            <div class="text-[11px] text-slate-500 space-y-0.5 font-semibold">
+              <div><strong class="text-slate-700">Người nhận:</strong> ${order.recipient_name || 'Mặc định'} - <strong class="text-slate-700">SĐT:</strong> ${order.recipient_phone || 'Chưa cung cấp'}</div>
+              ${order.recipient_email ? `<div><strong class="text-slate-700">Email:</strong> ${order.recipient_email}</div>` : ''}
+              <div><strong class="text-slate-700">Địa chỉ giao:</strong> ${order.shipping_address}</div>
+              <div><strong class="text-slate-700">Hình thức thanh toán:</strong> ${order.payment_method === 'cod' ? 'Thanh toán COD khi nhận hàng' : order.payment_method === 'bank_transfer' ? 'Chuyển khoản ngân hàng' : 'Ví điện tử'}</div>
+              ${order.cccd ? `<div><strong class="text-slate-700">Số CCCD:</strong> ${order.cccd}</div>` : ''}
+              ${order.notes ? `<div class="italic text-amber-600"><strong class="text-slate-700">Ghi chú:</strong> ${order.notes}</div>` : ''}
             </div>
             <div class="text-right flex items-center gap-2">
-              <span class="text-sm font-medium text-slate-500">Tổng thanh toán:</span>
+              <span class="text-sm font-medium text-slate-500">Tổng tiền:</span>
               <span class="text-lg font-extrabold text-sky-600">${formatCurrency(order.total_amount)}</span>
             </div>
-          </div>
-        </div>
+          </div>        </div>
       `;
     });
 
