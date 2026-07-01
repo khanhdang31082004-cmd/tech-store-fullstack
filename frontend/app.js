@@ -246,7 +246,7 @@ async function loadProducts() {
       container.innerHTML = `
         <div class="col-span-full py-16 text-center bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
           <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <h3 class="text-sm font-bold text-slate-650 mb-1">Không tìm thấy sản phẩm nào phù hợp</h3>
+          <h3 class="text-sm font-bold text-slate-600 mb-1">Không tìm thấy sản phẩm nào phù hợp</h3>
         </div>
       `;
       return;
@@ -260,55 +260,42 @@ async function loadProducts() {
         : `<button onclick="addToCart(${prod.id}, '${prod.product_name.replace(/'/g, "\\'")}', ${prod.price}, '${prod.image_url}')" class="flex-grow py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs transition-all hover-scale shadow border-0 cursor-pointer">Thêm vào giỏ</button>`;
 
       html += `
-        <div class="group relative bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover-scale flex flex-col justify-between overflow-hidden">
-          <div>
-            <!-- Ảnh sản phẩm và tag danh mục -->
-            <div onclick="showProductDetail(${prod.id})" class="h-44 w-full bg-slate-100 rounded-xl overflow-hidden mb-3 relative cursor-pointer">
-              <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" alt="${prod.product_name}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-350">
-              ${isOutOfStock ? `<div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center"><span class="bg-rose-600 text-white font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">Hết hàng</span></div>` : ''}
-              <span class="absolute top-2 left-2 bg-slate-950/80 text-sky-400 font-bold text-[9px] px-2 py-0.5 rounded tracking-wide uppercase">${prod.category_name}</span>
-            </div>
-            
-            <h3 onclick="showProductDetail(${prod.id})" class="font-extrabold text-slate-800 text-[20px] leading-snug line-clamp-2 min-h-[3.5rem] hover:text-sky-500 cursor-pointer transition-colors">${prod.product_name}</h3>
-            
-            <!-- Đánh giá sao chuyên nghiệp -->
-            <div class="flex items-center gap-1 mt-1">
-              <span class="text-amber-400 text-xs">★★★★★</span>
-              <span class="text-slate-400 text-[10px] font-bold">(4.8)</span>
-            </div>
-
-            <!-- Chữ mô tả lớn hơn, dễ đọc và tương phản tốt -->
-            <p class="text-slate-650 text-[15px] mt-2 line-clamp-2 min-h-[2.8rem] leading-relaxed">${prod.description || 'Chưa có thông số kỹ thuật chi tiết.'}</p>
-          </div>
-          
-          <div class="mt-3.5 border-t border-slate-100 pt-3">
-            <div class="flex items-end justify-between mb-3">
-              <div>
-                <span class="text-[10px] text-slate-400 block font-semibold leading-none">Giá ưu đãi:</span>
-                <span class="text-[22px] font-black text-sky-600">${formatCurrency(prod.price)}</span>
-              </div>
-              <span class="text-[10px] text-slate-400 font-bold">Kho: <strong class="text-slate-700 font-black">${prod.stock_quantity}</strong></span>
-            </div>
-            <div class="flex gap-2">
-              ${buttonHtml}
-              <button onclick="showProductDetail(${prod.id})" class="px-2.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs border-0 cursor-pointer">Chi tiết</button>
+        <div class="product-card bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-sky-200">
+          <!-- Ảnh + tag danh mục + tooltip slide-up khi hover -->
+          <div onclick="showProductDetail(${prod.id})" class="relative h-44 w-full bg-slate-100 rounded-xl overflow-hidden mb-3 cursor-pointer flex-shrink-0">
+            <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" alt="${prod.product_name}" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+            ${isOutOfStock ? `<div class="absolute inset-0 bg-slate-900/50 flex items-center justify-center"><span class="bg-rose-600 text-white font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">Hết hàng</span></div>` : ''}
+            <span class="absolute top-2 left-2 bg-slate-900/75 text-sky-400 font-bold text-[9px] px-2 py-0.5 rounded tracking-wide uppercase backdrop-blur-sm">${prod.category_name}</span>
+            <!-- Tooltip mô tả: trượt lên từ phía dưới ảnh, chỉ phủ ảnh không che card -->
+            <div class="absolute bottom-0 left-0 right-0 bg-slate-900/88 text-white text-[11px] px-3 py-2 leading-snug translate-y-full hover-tooltip-show transition-transform duration-300 pointer-events-none line-clamp-2">
+              ${prod.description || 'Sản phẩm công nghệ chính hãng.'}
             </div>
           </div>
 
-          <!-- Hover Detail Overlay (Solid dark background to fully cover the card contents behind it) -->
-          <div class="absolute inset-0 bg-slate-950 text-white p-5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between z-10 pointer-events-none">
-            <div>
-              <span class="text-[9px] text-sky-400 font-extrabold uppercase tracking-wider block mb-1">${prod.category_name}</span>
-              <h4 class="font-extrabold text-[15px] mb-3 leading-snug text-sky-300">${prod.product_name}</h4>
-              <div class="text-[11px] text-slate-300 space-y-2 leading-relaxed">
-                <p class="border-b border-slate-800 pb-2"><strong class="text-white">Cấu hình:</strong> ${prod.description || 'Thông số chi tiết cập nhật liên tục'}</p>
-                <p><strong class="text-white">Bảo hành:</strong> 12 tháng chính hãng</p>
-                <p><strong class="text-white">Tình trạng:</strong> ${prod.stock_quantity > 0 ? 'Còn hàng (Mới 100%)' : 'Hết hàng (Nhận đặt trước)'}</p>
-                <p><strong class="text-white">Chi nhánh:</strong> ${prod.store_name || 'Hệ thống Tech Store Việt Nam'}</p>
-              </div>
+          <!-- Nội dung card: flex-1 đảm bảo các card bằng chiều cao nhau -->
+          <div class="flex flex-col flex-1">
+            <h3 onclick="showProductDetail(${prod.id})" class="font-extrabold text-slate-800 leading-snug line-clamp-2 cursor-pointer hover:text-sky-600 transition-colors" style="font-size:17px;min-height:2.8rem">${prod.product_name}</h3>
+
+            <div class="flex items-center gap-1 mt-1.5">
+              <span class="text-amber-400" style="font-size:13px">★★★★★</span>
+              <span class="text-slate-400 font-semibold" style="font-size:11px">(4.8)</span>
             </div>
-            <div class="text-[10px] text-slate-400 italic text-center border-t border-slate-800 pt-2">
-              Click vào chi tiết để xem thêm
+
+            <p class="text-slate-500 line-clamp-2 mt-1.5 leading-relaxed" style="font-size:13px;min-height:2.4rem">${prod.description || 'Sản phẩm công nghệ chính hãng.'}</p>
+
+            <!-- Giá + nút: luôn ở dưới cùng nhờ mt-auto -->
+            <div class="mt-auto border-t border-slate-100 pt-2.5">
+              <div class="flex items-end justify-between mb-2">
+                <div>
+                  <span class="text-slate-400 block font-medium leading-none mb-0.5" style="font-size:10px">Giá bán:</span>
+                  <span class="font-black text-sky-600 leading-none" style="font-size:19px">${formatCurrency(prod.price)}</span>
+                </div>
+                <span class="text-slate-400 font-medium" style="font-size:10px">Kho: <strong class="text-slate-600">${prod.stock_quantity}</strong></span>
+              </div>
+              <div class="flex gap-2">
+                ${buttonHtml}
+                <button onclick="showProductDetail(${prod.id})" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs border-0 cursor-pointer flex-shrink-0 transition-colors">Chi tiết</button>
+              </div>
             </div>
           </div>
         </div>

@@ -112,3 +112,50 @@ h1, h2, h3, h4, h5, h6 {
 .bg-tech-dark {
   background-color: var(--bg-cyber-dark);
 }
+
+/* =========================================================================
+   PRODUCT CARD - Bố cục card sản phẩm chuẩn, bằng nhau, chuyên nghiệp
+   ========================================================================= */
+
+/* Grid sản phẩm: tất cả card bằng chiều cao nhau */
+#products-container {
+  align-items: stretch;
+}
+
+/* Card wrapper */
+.product-card {
+  /* Chiều cao card đồng đều trong grid */
+  height: 100%;
+}
+
+/* Khung ảnh sản phẩm: cố định 176px, object-cover đảm bảo không méo */
+.product-card .relative.h-44 {
+  height: 176px;
+  min-height: 176px;
+}
+
+/* Tooltip mô tả: mặc định ẩn xuống dưới, hiện lên khi hover vào ảnh */
+.hover-tooltip-show {
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Khi hover vào ảnh cha (relative container) thì tooltip trượt lên */
+.product-card .relative:hover .hover-tooltip-show {
+  transform: translateY(0);
+}
+
+/* Đảm bảo line-clamp hoạt động trên mọi trình duyệt */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
