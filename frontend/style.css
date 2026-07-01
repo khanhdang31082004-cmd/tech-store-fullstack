@@ -1,0 +1,114 @@
+/* =========================================================================
+   ĐỒ ÁN: WEBSITE BÁN MÁY TÍNH VÀ THIẾT BỊ CÔNG NGHỆ
+   FILE CSS: style.css - Định nghĩa giao diện hiện đại phong cách công nghệ
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --bg-cyber-dark: #0b0f19; /* Nền tối cyberpunk */
+  --bg-card-dark: #161f30; /* Nền card tối */
+  --bg-panel-light: #f8fafc; /* Nền sáng slate 50 */
+  --text-white: #ffffff;
+  --text-muted: #94a3b8;
+  --text-dark: #0f172a;
+  
+  /* Hệ màu neon công nghệ */
+  --cyan-neon: #00f0ff;
+  --cyan-glow: rgba(0, 240, 255, 0.35);
+  --green-neon: #39ff14;
+  --green-glow: rgba(57, 255, 20, 0.3);
+  --sky-tech: #38bdf8;
+  --sky-tech-glow: rgba(56, 189, 248, 0.4);
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: #f8fafc;
+  color: var(--text-dark);
+  scroll-behavior: smooth;
+}
+
+/* Hiệu ứng zoom nhẹ và bóng đổ phát sáng cho Card sản phẩm */
+.hover-scale {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.hover-scale:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px rgba(0, 240, 255, 0.08), 0 5px 15px rgba(0, 0, 0, 0.04);
+}
+
+/* Nền mờ phủ kính của các Modal */
+.modal-overlay {
+  background-color: rgba(11, 15, 25, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Tùy biến thanh cuộn Scrollbar mượt mà */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Hiệu ứng trượt và ẩn hiện cho Banner Slider */
+.banner-slide {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.banner-slide.opacity-100 {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Phát sáng neon cho nút bấm */
+.glow-cyan:hover {
+  box-shadow: 0 0 20px var(--cyan-glow);
+}
+.glow-emerald:hover {
+  box-shadow: 0 0 20px var(--green-glow);
+}
+
+/* Custom styles cho Popup Mini Cart dropdown */
+#mini-cart-popup {
+  box-shadow: 0 20px 50px rgba(11, 15, 25, 0.15);
+  animation: scaleUpIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes scaleUpIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Card Voucher nét đứt đặc trưng */
+.coupon-border {
+  border-style: dashed;
+}
+
+/* Font chữ to rõ ràng & Responsive */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Khung bọc tối công nghệ cho Header / Admin sidebar */
+.bg-tech-dark {
+  background-color: var(--bg-cyber-dark);
+}

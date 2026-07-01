@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Quản Trị - Tech Store Admin</title>
+  <!-- Nhúng TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              900: '#0b0f19',
+              850: '#0f1524',
+              800: '#161f30',
+              750: '#1f2b42',
+              500: '#00f0ff',
+              400: '#22d3ee',
+              neonGreen: '#39ff14',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col md:flex-row font-sans">
+
+  <!-- ==========================================
+       SIDEBAR ĐIỀU HƯỚNG ADMIN (Bên trái)
+       ========================================== -->
+  <aside class="w-full md:w-64 bg-cyber-900 text-white flex-shrink-0 flex flex-col border-r border-cyber-800">
+    <!-- Header Sidebar -->
+    <div class="p-6 border-b border-cyber-800 flex items-center justify-between">
+      <a href="index.html" class="text-xl font-black tracking-widest text-white hover:text-cyber-500 transition-colors">
+        <span class="bg-gradient-to-r from-cyber-500 to-emerald-400 bg-clip-text text-transparent">ADMIN PORTAL</span>
+      </a>
+    </div>
+
+    <!-- Danh sách Menu chuyển Tab -->
+    <nav class="flex-grow p-4 space-y-1">
+      <button onclick="switchAdminTab('dashboard')" id="menu-dashboard" class="admin-menu-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-extrabold transition-all bg-cyber-500 text-black border-0 cursor-pointer focus:outline-none">
+        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
+        Bảng điều khiển
+      </button>
+
+      <button onclick="switchAdminTab('products')" id="menu-products" class="admin-menu-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-extrabold text-slate-400 hover:text-white hover:bg-cyber-800 transition-all bg-transparent border-0 cursor-pointer focus:outline-none">
+        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+        Quản lý sản phẩm
+      </button>
+
+      <button onclick="switchAdminTab('orders')" id="menu-orders" class="admin-menu-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-extrabold text-slate-400 hover:text-white hover:bg-cyber-800 transition-all bg-transparent border-0 cursor-pointer focus:outline-none">
+        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+        Quản lý đơn hàng
+      </button>
+    </nav>
+
+    <!-- Footer Sidebar: Quay lại cửa hàng & Đăng xuất -->
+    <div class="p-4 border-t border-cyber-800 flex flex-col gap-2">
+      <a href="index.html" class="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-slate-700 hover:bg-cyber-800 text-xs font-bold transition-all text-slate-300">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        Xem cửa hàng
+      </a>
+      <button onclick="logout()" class="w-full py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-xs font-bold transition-all text-white shadow-md border-0 cursor-pointer">
+        Đăng xuất hệ thống
+      </button>
+    </div>
+  </aside>
+
+  <!-- ==========================================
+       VÙNG NỘI DUNG CHÍNH (MAIN CONTENT)
+       ========================================== -->
+  <main class="flex-grow p-6 md:p-8 overflow-y-auto">
+    
+    <!-- Top Header thông tin Admin -->
+    <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 mb-6 border-b border-slate-200 gap-4">
+      <div>
+        <h1 class="text-xl font-black text-slate-800 tracking-tight uppercase" id="admin-page-title">Bảng điều khiển (Dashboard)</h1>
+        <p class="text-slate-500 text-xs mt-1">Hệ thống quản trị và kiểm soát dữ liệu bán hàng thực tế.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-250">API Máy Chủ: Hoạt động tốt</span>
+        <span class="text-slate-300">|</span>
+        <span class="text-xs font-bold text-slate-650" id="admin-time">...</span>
+      </div>
+    </header>
+
+    <!-- ==========================================
+         TAB 1: DASHBOARD (THỐNG KÊ DOANH THU)
+         ========================================== -->
+    <section id="tab-content-dashboard" class="admin-tab-content space-y-6">
+      
+      <!-- Lưới Thẻ Thống kê Tóm tắt (Grid Stat Cards) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Doanh thu -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Tổng doanh thu</span>
+            <h3 id="stat-revenue" class="text-xl font-black text-cyan-600 mt-1">0 đ</h3>
+          </div>
+          <div class="p-3 rounded-xl bg-cyan-50 text-cyan-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M12 16v1M10 12h4"></path></svg>
+          </div>
+        </div>
+
+        <!-- Đơn hàng -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Số đơn hàng</span>
+            <h3 id="stat-orders" class="text-xl font-black text-slate-800 mt-1">0</h3>
+          </div>
+          <div class="p-3 rounded-xl bg-amber-50 text-amber-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+          </div>
+        </div>
+
+        <!-- Sản phẩm -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Tổng sản phẩm</span>
+            <h3 id="stat-products" class="text-xl font-black text-slate-800 mt-1">0</h3>
+          </div>
+          <div class="p-3 rounded-xl bg-emerald-50 text-emerald-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+          </div>
+        </div>
+
+        <!-- Khách hàng -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold">Khách hàng</span>
+            <h3 id="stat-customers" class="text-xl font-black text-slate-800 mt-1">0</h3>
+          </div>
+          <div class="p-3 rounded-xl bg-purple-50 text-purple-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thống kê nâng cao (Bán chạy & Đơn hàng mới) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Bảng Sản phẩm bán chạy nhất -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-xs font-black text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2 uppercase tracking-wider">
+            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.362 1.253.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.383-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+            Top sản phẩm bán chạy nhất
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-500">
+              <thead class="text-[10px] text-slate-400 uppercase bg-slate-50">
+                <tr>
+                  <th class="px-4 py-3">Thiết bị</th>
+                  <th class="px-4 py-3 text-center">Số lượng bán</th>
+                  <th class="px-4 py-3 text-right">Doanh thu</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-top-products" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="3" class="text-center py-6 text-slate-400">Đang tải thống kê doanh số...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Bảng 5 Đơn hàng vừa đặt -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-xs font-black text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2 uppercase tracking-wider">
+            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Đơn đặt hàng mới nhất
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-500">
+              <thead class="text-[10px] text-slate-400 uppercase bg-slate-50">
+                <tr>
+                  <th class="px-4 py-3">Mã đơn hàng</th>
+                  <th class="px-4 py-3">Tên khách hàng</th>
+                  <th class="px-4 py-3 text-center">Tổng thanh toán</th>
+                  <th class="px-4 py-3 text-right">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-orders" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="4" class="text-center py-6 text-slate-400">Đang tải danh sách đơn đặt hàng mới...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==========================================
+         TAB 2: QUẢN LÝ SẢN PHẨM (PRODUCT CRUD)
+         ========================================== -->
+    <section id="tab-content-products" class="admin-tab-content space-y-6 hidden">
+      <!-- Thanh công cụ sản phẩm -->
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <h2 class="text-xs font-black uppercase text-slate-800 tracking-wider">Danh sách thiết bị có trong kho</h2>
+        <button onclick="openProductModal()" class="px-4 py-2.5 rounded-xl bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-xs shadow-md hover-scale transition-all flex items-center gap-1.5 border-0 focus:outline-none cursor-pointer">
+          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          Thêm sản phẩm mới
+        </button>
+      </div>
+
+      <!-- Bảng danh sách sản phẩm -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left text-slate-500">
+            <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-6 py-3.5">Ảnh</th>
+                <th class="px-6 py-3.5">Tên sản phẩm</th>
+                <th class="px-6 py-3.5">Danh mục</th>
+                <th class="px-6 py-3.5 text-right">Đơn giá</th>
+                <th class="px-6 py-3.5 text-center">Tồn kho</th>
+                <th class="px-6 py-3.5 text-right">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="admin-products-table" class="divide-y divide-slate-100">
+              <tr>
+                <td colspan="6" class="text-center py-12 text-slate-400">Đang tải danh sách sản phẩm hệ thống...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 3: QUẢN LÝ ĐƠN HÀNG (ORDER MANAGEMENT)
+         ========================================== -->
+    <section id="tab-content-orders" class="admin-tab-content space-y-6 hidden">
+      <h2 class="text-xs font-black uppercase text-slate-800 tracking-wider">Danh sách toàn bộ các hóa đơn đặt hàng</h2>
+      
+      <!-- Bảng danh sách đơn hàng -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left text-slate-500">
+            <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-6 py-3.5">Mã đơn</th>
+                <th class="px-6 py-3.5">Khách hàng</th>
+                <th class="px-6 py-3.5">Thông tin hàng hóa</th>
+                <th class="px-6 py-3.5 text-right">Tổng tiền</th>
+                <th class="px-6 py-3.5 text-center">Trạng thái</th>
+                <th class="px-6 py-3.5 text-right">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="admin-orders-table" class="divide-y divide-slate-100">
+              <tr>
+                <td colspan="6" class="text-center py-12 text-slate-400">Đang tải danh sách đơn đặt hàng từ khách...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       MODAL THÊM / SỬA SẢN PHẨM (POPUP MODAL)
+       ========================================== -->
+  <div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+    <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-slate-200 mx-4 relative max-h-[90vh] overflow-y-auto animate-pulse-once">
+      
+      <!-- Nút đóng -->
+      <button onclick="closeProductModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors p-1.5 rounded-full hover:bg-slate-100 border-0 bg-transparent cursor-pointer">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <h3 id="modal-title" class="text-base font-black text-slate-800 mb-4 pb-2 border-b border-slate-100 uppercase tracking-wider">Thêm sản phẩm mới</h3>
+
+      <!-- Form chi tiết sản phẩm -->
+      <form id="form-product" class="space-y-4">
+        <input type="hidden" id="modal-product-id">
+        
+        <div>
+          <label for="modal-name" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Tên thiết bị *</label>
+          <input type="text" id="modal-name" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="Ví dụ: Laptop Asus ROG Strix...">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="modal-price" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Đơn giá bán lẻ (VNĐ) *</label>
+            <input type="number" id="modal-price" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="Ví dụ: 15000000">
+          </div>
+          <div>
+            <label for="modal-stock" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Số lượng tồn kho *</label>
+            <input type="number" id="modal-stock" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="Ví dụ: 10">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="modal-category" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Danh mục *</label>
+            <select id="modal-category" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-850 cursor-pointer">
+              <!-- Nạp động select -->
+            </select>
+          </div>
+          <div>
+            <label for="modal-store" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Cửa hàng chi nhánh</label>
+            <select id="modal-store" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-855 cursor-pointer">
+              <option value="1">Tech Store Q1</option>
+              <option value="2">Tech Store Cầu Giấy</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="modal-image" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Đường dẫn ảnh URL</label>
+          <input type="url" id="modal-image" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="https://images.unsplash.com/...">
+        </div>
+
+        <div>
+          <label for="modal-description" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Thông số kỹ thuật / Mô tả</label>
+          <textarea id="modal-description" rows="3" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="Mô tả thông số chi tiết sản phẩm..."></textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeProductModal()" class="px-5 py-2.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-xs font-bold transition-all cursor-pointer">Hủy bỏ</button>
+          <button type="submit" class="px-5 py-2.5 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-xs shadow-md transition-all border-0 cursor-pointer">Lưu sản phẩm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

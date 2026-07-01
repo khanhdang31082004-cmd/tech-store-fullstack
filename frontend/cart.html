@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giỏ Hàng Thanh Toán - Tech Store</title>
+  <!-- Nhúng TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              900: '#0b0f19',
+              850: '#0f1524',
+              800: '#161f30',
+              750: '#1f2b42',
+              500: '#00f0ff',
+              400: '#22d3ee',
+              neonGreen: '#39ff14',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+  <!-- Navbar giống trang chủ -->
+  <nav class="bg-cyber-900 text-white sticky top-0 z-40 shadow-lg border-b border-cyber-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex items-center justify-between h-14">
+        <a href="index.html" class="flex items-center gap-2 text-2xl font-black tracking-widest text-white hover:text-cyber-500 transition-colors">
+          <span class="bg-gradient-to-r from-cyber-500 to-emerald-400 bg-clip-text text-transparent">TECH STORE</span>
+        </a>
+        <div class="flex items-center gap-5">
+          <a href="cart.html" class="relative p-2.5 bg-cyber-800 hover:bg-cyber-750 border border-cyber-750 text-white rounded-lg hover-scale transition-all">
+            <svg class="w-5 h-5 text-cyber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <span id="cart-badge" class="absolute -top-1 -right-1 bg-rose-500 text-white font-black text-[10px] px-1.5 py-0.5 rounded-full hidden">0</span>
+          </a>
+          <div id="nav-auth-container" class="text-xs font-semibold"></div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Container chính -->
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
+    <h1 class="text-2xl font-black text-slate-800 tracking-tight mb-8">Xác nhận thanh toán đơn hàng</h1>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Cột trái: Danh sách sản phẩm trong giỏ -->
+      <section class="lg:col-span-2 space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          
+          <!-- Tiêu đề bảng -->
+          <div class="hidden sm:grid grid-cols-12 gap-3 px-6 py-3.5 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <div class="col-span-6">Thiết bị</div>
+            <div class="col-span-2 text-center">Đơn giá</div>
+            <div class="col-span-2 text-center">Số lượng</div>
+            <div class="col-span-2 text-right">Tổng cộng</div>
+          </div>
+
+          <!-- Danh sách thực tế -->
+          <div id="cart-items-container" class="divide-y divide-slate-100">
+            <p class="text-center py-12 text-slate-400 text-xs">Đang đọc thông tin giỏ hàng...</p>
+          </div>
+
+        </div>
+
+        <!-- Nút mua thêm sản phẩm -->
+        <a href="index.html" class="inline-flex items-center gap-2 text-xs font-bold text-cyber-500 hover:text-cyan-500 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          Tiếp tục xem các sản phẩm công nghệ khác
+        </a>
+      </section>
+
+      <!-- Cột phải: Thanh toán & Tóm tắt đơn hàng -->
+      <section class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-6">
+        <h2 class="text-base font-black text-slate-800 pb-3 border-b border-slate-100 flex items-center gap-2 uppercase tracking-wider">
+          <svg class="w-5 h-5 text-cyber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+          Hóa đơn của bạn
+        </h2>
+
+        <!-- Tóm tắt số tiền -->
+        <div class="space-y-3 text-xs">
+          <div class="flex justify-between text-slate-500 font-medium">
+            <span>Tạm tính tiền hàng:</span>
+            <span id="summary-subtotal" class="font-bold text-slate-700">0 đ</span>
+          </div>
+          <div class="flex justify-between text-slate-500 font-medium">
+            <span>Chi phí vận chuyển:</span>
+            <span class="text-emerald-500 font-bold">Miễn phí giao hàng</span>
+          </div>
+          <div class="border-t border-slate-100 pt-3 flex justify-between items-end">
+            <span class="font-bold text-slate-700">Tổng thanh toán:</span>
+            <span id="summary-total" class="text-2xl font-black text-cyber-500">0 đ</span>
+          </div>
+        </div>
+
+        <!-- Form nhập địa chỉ giao hàng và Checkout -->
+        <div id="checkout-form-container" class="border-t border-slate-100 pt-4">
+          <!-- Thông báo nếu chưa đăng nhập -->
+          <div id="checkout-auth-warning" class="bg-amber-50 border border-amber-200 p-4 rounded-lg text-sm text-amber-800 mb-4 hidden">
+            Bạn cần <strong>đăng nhập</strong> để thực hiện đặt hàng và thanh toán trực tuyến.
+            <a href="auth.html?mode=login" class="block mt-2 text-center py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold shadow transition-all">Đăng nhập ngay</a>
+          </div>
+
+          <!-- Form thanh toán thực tế (Chỉ hiện khi đã đăng nhập) -->
+          <form id="form-checkout" class="space-y-4 hidden">
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Thông tin địa chỉ giao nhận</h3>
+            <div>
+              <label for="checkout-fullname" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Họ tên người nhận *</label>
+              <input type="text" id="checkout-fullname" required class="w-full bg-white border border-slate-350 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+            </div>
+            <div>
+              <label for="checkout-phone" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Số điện thoại *</label>
+              <input type="tel" id="checkout-phone" required class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+            </div>
+            <div>
+              <label for="checkout-address" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Địa chỉ giao hàng chi tiết *</label>
+              <textarea id="checkout-address" rows="3" required class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."></textarea>
+            </div>
+            
+            <button type="submit" class="w-full py-3.5 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-xs shadow-lg hover-scale glow-cyan transition-all flex items-center justify-center gap-2 border-0 cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              Xác nhận Đặt hàng ngay
+            </button>
+          </form>
+        </div>
+
+      </section>
+      
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-cyber-900 text-white mt-12 border-t border-cyber-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-slate-500 text-[10px] font-bold">
+      &copy; 2026 Tech Store. Tất cả bản quyền được bảo lưu.
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="cart.js"></script>
+</body>
+</html>

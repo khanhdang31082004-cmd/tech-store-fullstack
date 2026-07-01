@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Store - Hệ Thống Thiết Bị Công Nghệ Cao Cấp</title>
+  <!-- Nhúng TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              900: '#0b0f19',
+              850: '#0f1524',
+              800: '#161f30',
+              750: '#1f2b42',
+              500: '#00f0ff',
+              400: '#22d3ee',
+              neonGreen: '#39ff14',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Nhúng phông chữ Outfit Google Fonts -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col font-sans">
+
+  <!-- =========================================================================
+       1. HEADER CÔNG NGHỆ CHUYÊN NGHIỆP (STICKY)
+       ========================================================================= -->
+  <header class="bg-cyber-900 text-white sticky top-0 z-45 shadow-2xl border-b border-cyber-800">
+    
+    <!-- Topbar phụ thông tin shop -->
+    <div class="bg-black/45 py-2 px-4 text-xs text-slate-450 border-b border-cyber-900/60 hidden sm:block">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-6">
+          <span class="flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyber-500 animate-ping"></span>
+            Cam kết hàng chính hãng 100%
+          </span>
+          <span>•</span>
+          <span>Bảo hành vàng đổi mới tận nơi trong 30 ngày</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="text-slate-400">Hotline hỗ trợ miễn phí: <strong class="text-cyber-500">1800 6868</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Header -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+      <div class="flex items-center justify-between gap-4">
+        
+        <!-- Logo bên trái -->
+        <a href="index.html" class="flex items-center gap-2 text-2xl font-black tracking-widest hover:scale-95 transition-all flex-shrink-0">
+          <span class="bg-gradient-to-r from-cyber-500 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">TECH STORE</span>
+        </a>
+
+        <!-- Ô tìm kiếm lớn ở giữa -->
+        <div class="flex-grow max-w-md lg:max-w-lg hidden md:block relative">
+          <div class="flex bg-cyber-800 border border-cyber-750 rounded-xl p-0.5 focus-within:ring-2 focus-within:ring-cyber-500 focus-within:border-cyber-500 transition-all">
+            <input type="text" id="search-input" placeholder="Bạn muốn tìm sản phẩm nào? (Laptop ROG, chuột gaming...)" class="w-full bg-transparent pl-3.5 pr-10 py-2 text-xs text-white placeholder-slate-400 focus:outline-none rounded-l-xl">
+            <button id="search-btn" class="px-5 bg-cyber-500 hover:bg-cyan-500 rounded-lg text-black font-extrabold text-xs transition-colors flex items-center gap-1.5 border-0 focus:outline-none cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <span>Tìm kiếm</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Nhóm chức năng bên phải -->
+        <div class="flex items-center gap-4 flex-shrink-0">
+          <!-- Button hệ thống chi nhánh -->
+          <button onclick="toggleStoreModal(true)" class="flex items-center gap-1 text-xs font-bold text-slate-300 hover:text-white bg-cyber-800/80 px-3 py-2 rounded-xl border border-cyber-750 cursor-pointer focus:outline-none transition-all">
+            <svg class="w-4 h-4 text-cyber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            <span class="hidden lg:inline">Hệ thống cửa hàng</span>
+            <span class="lg:hidden">Cửa hàng</span>
+          </button>
+
+          <!-- Icon giỏ hàng với Badge số lượng -->
+          <div class="relative">
+            <button onclick="toggleMiniCart()" class="relative p-2.5 bg-cyber-800 hover:bg-cyber-750 border border-cyber-750 text-white rounded-xl transition-all focus:outline-none flex items-center justify-center cursor-pointer hover:scale-105">
+              <svg class="w-5 h-5 text-cyber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              <span id="cart-badge" class="absolute -top-1 -right-1 bg-rose-600 text-white font-extrabold text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span>
+            </button>
+
+            <!-- Popup Mini Cart thả xuống từ Icon giỏ hàng -->
+            <div id="mini-cart-popup" class="absolute right-0 top-14 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 text-slate-850 p-4 hidden z-50">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
+                <h3 class="font-black text-sm text-slate-800">Giỏ hàng hiện tại</h3>
+                <button onclick="toggleMiniCart(false)" class="text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+              
+              <!-- Danh sách sản phẩm mini -->
+              <div id="mini-cart-items" class="max-h-56 overflow-y-auto space-y-3 mb-4 pr-1">
+                <!-- Sẽ nạp động -->
+              </div>
+              
+              <!-- Footer popup -->
+              <div class="border-t border-slate-100 pt-3">
+                <div class="flex items-center justify-between text-xs font-extrabold text-slate-800 mb-3">
+                  <span>Tổng giá trị hàng:</span>
+                  <span id="mini-cart-total" class="text-cyan-600 text-sm">0 đ</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <a href="cart.html" class="py-2 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs text-center transition-all block">Xem giỏ hàng</a>
+                  <a href="cart.html" class="py-2 bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-xs text-center rounded-lg shadow transition-all block">Thanh toán</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Khu vực Đăng nhập / Chào mừng -->
+          <div id="nav-auth-container" class="text-xs font-bold"></div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Navbar phụ chứa menu điều hướng chính dạng các nút TAB/PANEL -->
+  <div class="bg-cyber-850 text-white border-b border-cyber-800 py-3 px-4 hidden md:block">
+    <div class="max-w-7xl mx-auto flex items-center gap-8 text-xs uppercase tracking-wider font-extrabold">
+      <button onclick="showPanel('store')" data-nav="store" class="text-cyber-500 font-black transition-all hover:text-cyber-400 bg-transparent border-0 cursor-pointer focus:outline-none">Cửa hàng</button>
+      <button onclick="showPanel('promotion')" data-nav="promotion" class="text-slate-350 hover:text-white transition-colors bg-transparent border-0 cursor-pointer focus:outline-none">Chương trình khuyến mãi</button>
+      <button onclick="showPanel('contact')" data-nav="contact" class="text-slate-350 hover:text-white transition-colors bg-transparent border-0 cursor-pointer focus:outline-none">Tư vấn liên hệ</button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PANEL CỬA HÀNG (PANEL STORE) - Slider + Sidebar Lọc + Products Grid
+       ========================================================================= -->
+  <div id="panel-store" class="flex flex-col gap-6">
+    
+    <!-- 2.1 SLIDER BANNER LỚN CHUYỂN SLIDE TỰ ĐỘNG -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
+      <div class="relative rounded-2xl overflow-hidden shadow-2xl h-60 md:h-[350px] bg-cyber-900 border border-cyber-800" id="banner-slider">
+        
+        <!-- Slide 1 -->
+        <div class="banner-slide absolute inset-0 transition-all duration-700 flex items-center" data-slide="0">
+          <img src="https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=1200" alt="Laptop Gaming Banner" class="absolute inset-0 w-full h-full object-cover opacity-45">
+          <div class="absolute inset-0 bg-gradient-to-r from-cyber-900 via-cyber-900/30 to-transparent"></div>
+          <div class="relative z-10 px-8 md:px-16 max-w-xl text-white">
+            <span class="px-2.5 py-0.5 text-[9px] bg-cyber-500 text-black font-black rounded-full mb-3.5 inline-block uppercase tracking-widest">Khuyến mãi cực hot</span>
+            <h2 class="text-2xl md:text-4xl font-extrabold mb-3 leading-tight tracking-tight">Laptop Gaming ASUS ROG</h2>
+            <p class="text-[11px] md:text-xs text-slate-300 mb-6 leading-relaxed">Trang bị bộ xử lý AMD Ryzen 9 đỉnh cao cùng card đồ họa rời RTX 4060 chiến mọi tựa game đồ họa nặng mượt mà nhất.</p>
+            <button onclick="showPanel('store')" class="px-5 py-2 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-[11px] transition-all shadow hover-scale border-0 cursor-pointer">Mua sắm ngay</button>
+          </div>
+        </div>
+        
+        <!-- Slide 2 -->
+        <div class="banner-slide absolute inset-0 transition-all duration-700 flex items-center opacity-0 pointer-events-none" data-slide="1">
+          <img src="https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=1200" alt="PC Workstation Banner" class="absolute inset-0 w-full h-full object-cover opacity-45">
+          <div class="absolute inset-0 bg-gradient-to-r from-cyber-900 via-cyber-900/30 to-transparent"></div>
+          <div class="relative z-10 px-8 md:px-16 max-w-xl text-white">
+            <span class="px-2.5 py-0.5 text-[9px] bg-emerald-500 text-white font-black rounded-full mb-3.5 inline-block uppercase tracking-widest">Thiết kế cấu hình chuyên nghiệp</span>
+            <h2 class="text-2xl md:text-4xl font-extrabold mb-3 leading-tight tracking-tight">PC Workstation Đồ Họa</h2>
+            <p class="text-[11px] md:text-xs text-slate-300 mb-6 leading-relaxed">Tối ưu hiệu năng render 3D, dựng phim và làm việc chuyên nghiệp. Linh kiện hoàn toàn chính hãng, bảo hành trọn đời.</p>
+            <button onclick="showPanel('store')" class="px-5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[11px] transition-all shadow hover-scale border-0 cursor-pointer">Build PC Workstation</button>
+          </div>
+        </div>
+        
+        <!-- Slide 3 -->
+        <div class="banner-slide absolute inset-0 transition-all duration-700 flex items-center opacity-0 pointer-events-none" data-slide="2">
+          <img src="https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=1200" alt="Accessories Banner" class="absolute inset-0 w-full h-full object-cover opacity-45">
+          <div class="absolute inset-0 bg-gradient-to-r from-cyber-900 via-cyber-900/30 to-transparent"></div>
+          <div class="relative z-10 px-8 md:px-16 max-w-xl text-white">
+            <span class="px-2.5 py-0.5 text-[9px] bg-amber-500 text-white font-black rounded-full mb-3.5 inline-block uppercase tracking-widest">Combo Gear</span>
+            <h2 class="text-2xl md:text-4xl font-extrabold mb-3 leading-tight tracking-tight">Phụ Kiện Gear Cao Cấp</h2>
+            <p class="text-[11px] md:text-xs text-slate-300 mb-6 leading-relaxed">Bàn phím cơ Keychron chất lượng, chuột gaming không dây Razer siêu nhạy giảm giá sâu đến 20% khi mua kèm PC.</p>
+            <button onclick="showPanel('store')" class="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-[11px] transition-all shadow hover-scale border-0 cursor-pointer">Săn Gear Ngay</button>
+          </div>
+        </div>
+
+        <!-- Nút Trái / Phải slider -->
+        <button onclick="prevBannerSlide()" class="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all z-20 border-0 focus:outline-none cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        <button onclick="nextBannerSlide()" class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all z-20 border-0 focus:outline-none cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2.2 KHU VỰC CHÍNH: SIDEBAR DANH MỤC TRÁI + KHỐI SẢN PHẨM PHẢI -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col md:flex-row gap-8 py-2 flex-grow">
+      
+      <!-- Sidebar Danh Mục Sản Phẩm (Bên trái) -->
+      <aside class="w-full md:w-64 flex-shrink-0">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm sticky top-24">
+          <h2 class="text-xs font-black uppercase tracking-wider text-slate-800 mb-4 flex items-center gap-2 pb-2 border-b border-slate-100">
+            <svg class="w-4.5 h-4.5 text-cyber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            Danh mục thiết bị
+          </h2>
+          
+          <div class="flex flex-col gap-1" id="categories-filter">
+            <!-- Nút hiển thị tất cả -->
+            <button onclick="filterCategory(null)" id="cat-btn-all" class="category-btn text-left px-3 py-2 rounded-xl text-xs font-bold bg-cyan-50 text-cyan-700 hover:bg-cyan-100 transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer">
+              <span>Tất cả sản phẩm</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-cyber-500"></span>
+            </button>
+            
+            <!-- Danh sách danh mục được nạp động từ API -->
+            <div id="dynamic-categories-list" class="flex flex-col gap-1 w-full mt-1">
+              <!-- Loading Skeleton -->
+              <div class="animate-pulse space-y-2 p-2">
+                <div class="h-4 bg-slate-100 rounded w-full"></div>
+                <div class="h-4 bg-slate-100 rounded w-5/6"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Vùng hiển thị sản phẩm -->
+      <section class="flex-grow">
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-2">
+          <h2 class="text-lg font-black text-slate-850 tracking-tight" id="section-title">Tất cả sản phẩm</h2>
+          <span class="text-[10px] text-slate-400 font-bold bg-slate-200/50 px-2.5 py-1 rounded-full" id="products-count">...</span>
+        </div>
+
+        <!-- Grid Sản phẩm -->
+        <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Loading skeleton mặc định -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm animate-pulse space-y-4">
+            <div class="bg-slate-100 h-44 rounded-xl"></div>
+            <div class="h-5 bg-slate-100 rounded w-3/4"></div>
+            <div class="h-3 bg-slate-100 rounded w-1/2"></div>
+            <div class="h-10 bg-slate-100 rounded w-full"></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm animate-pulse space-y-4">
+            <div class="bg-slate-100 h-44 rounded-xl"></div>
+            <div class="h-5 bg-slate-100 rounded w-3/4"></div>
+            <div class="h-3 bg-slate-100 rounded w-1/2"></div>
+            <div class="h-10 bg-slate-100 rounded w-full"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- 2.3 PHẦN THÔNG TIN GIỚI THIỆU THƯƠNG HIỆU -->
+    <section id="about-section" class="bg-white border-y border-slate-200 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <span class="text-cyber-500 font-extrabold text-xs uppercase tracking-wider block mb-1">Thương hiệu Tech Store</span>
+            <h2 class="text-2xl font-black text-slate-850 tracking-tight mb-3">Đối Tác Phân Phối Linh Kiện Cao Cấp</h2>
+            <p class="text-slate-600 text-xs leading-relaxed mb-4">
+              Chúng tôi hợp tác toàn diện cùng các thương hiệu công nghệ lớn như ASUS, Apple, Logitech, Keychron nhằm mang đến các sản phẩm góc làm việc và chơi game chuyên nghiệp, chính hãng 100% với mức giá ưu đãi nhất.
+            </p>
+            <div class="flex items-center gap-6">
+              <div>
+                <span class="text-2xl font-black text-cyber-500">50K+</span>
+                <p class="text-[10px] text-slate-400 font-bold uppercase">Khách hàng tin dùng</p>
+              </div>
+              <div class="border-l border-slate-200 h-6"></div>
+              <div>
+                <span class="text-2xl font-black text-emerald-500">10+</span>
+                <p class="text-[10px] text-slate-400 font-bold uppercase">Cửa hàng chi nhánh</p>
+              </div>
+              <div class="border-l border-slate-200 h-6"></div>
+              <div>
+                <span class="text-2xl font-black text-amber-500">100%</span>
+                <p class="text-[10px] text-slate-400 font-bold uppercase">Chính hãng</p>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=250" alt="Tech Store Team" class="rounded-xl object-cover h-32 w-full hover-scale">
+            <img src="https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=250" alt="Work Setup" class="rounded-xl object-cover h-32 w-full hover-scale">
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- =========================================================================
+       PANEL KHUYẾN MÃI (PANEL PROMOTION)
+       ========================================================================= -->
+  <div id="panel-promotion" class="hidden">
+    <section class="py-12 bg-slate-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Banner Khuyến mãi lớn của tab Khuyến mãi -->
+        <div class="relative rounded-2xl overflow-hidden shadow-xl h-48 bg-cyber-900 flex items-center mb-10 border border-cyber-800">
+          <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200" alt="Promo Banner" class="absolute inset-0 w-full h-full object-cover opacity-20">
+          <div class="absolute inset-0 bg-gradient-to-r from-cyber-900 via-cyber-900/60 to-transparent"></div>
+          <div class="relative z-10 px-8 max-w-xl text-white">
+            <span class="px-2.5 py-0.5 text-[9px] bg-cyber-500 text-black font-extrabold rounded-full mb-2 inline-block uppercase tracking-wider">Ưu đãi độc quyền</span>
+            <h2 class="text-xl md:text-3xl font-black mb-2 leading-tight">Mã Ưu Đãi Tech Store</h2>
+            <p class="text-xs text-slate-350">Sao chép mã ưu đãi bên dưới và dán vào phần ghi chú khi đặt hàng để nhận ngay quà tặng hoặc giảm tiền trực tiếp.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          <!-- Voucher 1 -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover-scale flex flex-col justify-between">
+            <div>
+              <span class="px-2.5 py-1 text-[9px] bg-rose-100 text-rose-800 font-extrabold rounded-full mb-3 inline-block uppercase">Giảm 10%</span>
+              <h3 class="font-extrabold text-slate-800 text-sm mb-1.5">Mã Giảm Giá Laptop</h3>
+              <p class="text-slate-500 text-[11px] leading-relaxed mb-4">
+                Giảm ngay 10% tối đa 2.000.000đ khi đặt mua bất kỳ sản phẩm Laptop nào trong hệ thống cửa hàng.
+              </p>
+            </div>
+            <div class="border-t border-slate-100 pt-3 flex items-center justify-between gap-2">
+              <div class="bg-slate-50 border border-dashed border-slate-300 rounded px-2 py-1 text-xs font-mono font-bold text-slate-750 select-all">GIAM10</div>
+              <button onclick="copyToClipboard('GIAM10')" class="px-3 py-1.5 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-[10px] border-0 cursor-pointer transition-all shadow">Sao chép</button>
+            </div>
+          </div>
+
+          <!-- Voucher 2 -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover-scale flex flex-col justify-between">
+            <div>
+              <span class="px-2.5 py-1 text-[9px] bg-emerald-100 text-emerald-800 font-extrabold rounded-full mb-3 inline-block uppercase">Free Shipping</span>
+              <h3 class="font-extrabold text-slate-800 text-sm mb-1.5">Miễn Phí Vận Chuyển</h3>
+              <p class="text-slate-500 text-[11px] leading-relaxed mb-4">
+                Miễn phí vận chuyển hỏa tốc trong 2 giờ cho mọi đơn hàng giá trị từ 5.000.000đ trở lên.
+              </p>
+            </div>
+            <div class="border-t border-slate-100 pt-3 flex items-center justify-between gap-2">
+              <div class="bg-slate-50 border border-dashed border-slate-300 rounded px-2 py-1 text-xs font-mono font-bold text-slate-750 select-all">FREESHIP</div>
+              <button onclick="copyToClipboard('FREESHIP')" class="px-3 py-1.5 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-[10px] border-0 cursor-pointer transition-all shadow">Sao chép</button>
+            </div>
+          </div>
+
+          <!-- Voucher 3 -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover-scale flex flex-col justify-between">
+            <div>
+              <span class="px-2.5 py-1 text-[9px] bg-amber-100 text-amber-800 font-extrabold rounded-full mb-3 inline-block uppercase">Quà Tặng Kèm</span>
+              <h3 class="font-extrabold text-slate-800 text-sm mb-1.5">Giảm Gear Đồ Họa</h3>
+              <p class="text-slate-500 text-[11px] leading-relaxed mb-4">
+                Giảm ngay 500.000đ khi đặt mua các dòng chuột gaming không dây và bàn phím cơ Keychron cao cấp.
+              </p>
+            </div>
+            <div class="border-t border-slate-100 pt-3 flex items-center justify-between gap-2">
+              <div class="bg-slate-50 border border-dashed border-slate-300 rounded px-2 py-1 text-xs font-mono font-bold text-slate-750 select-all">GAMING500</div>
+              <button onclick="copyToClipboard('GAMING500')" class="px-3 py-1.5 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-[10px] border-0 cursor-pointer transition-all shadow">Sao chép</button>
+            </div>
+          </div>
+
+          <!-- Voucher 4 -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover-scale flex flex-col justify-between">
+            <div>
+              <span class="px-2.5 py-1 text-[9px] bg-indigo-100 text-indigo-800 font-extrabold rounded-full mb-3 inline-block uppercase">Giảm Tiền Mặt</span>
+              <h3 class="font-extrabold text-slate-800 text-sm mb-1.5">Mã Combo Trọn Bộ PC</h3>
+              <p class="text-slate-500 text-[11px] leading-relaxed mb-4">
+                Giảm ngay 1.000.000đ vào đơn hàng khi tự lắp ráp hoặc build cấu hình máy tính để bàn (PC) trọn gói.
+              </p>
+            </div>
+            <div class="border-t border-slate-100 pt-3 flex items-center justify-between gap-2">
+              <div class="bg-slate-50 border border-dashed border-slate-300 rounded px-2 py-1 text-xs font-mono font-bold text-slate-750 select-all">COMBOPC</div>
+              <button onclick="copyToClipboard('COMBOPC')" class="px-3 py-1.5 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-[10px] border-0 cursor-pointer transition-all shadow">Sao chép</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- =========================================================================
+       PANEL LIÊN HỆ / TƯ VẤN (PANEL CONTACT)
+       ========================================================================= -->
+  <div id="panel-contact" class="hidden">
+    <section class="bg-cyber-900 text-white py-12 relative overflow-hidden border-y border-cyber-800">
+      <div class="absolute inset-0 bg-[radial-gradient(#00f0ff_1px,transparent_1px)] [background-size:25px_25px] opacity-5"></div>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          
+          <!-- Thông tin hỗ trợ bên trái -->
+          <div class="space-y-6">
+            <div>
+              <span class="text-cyber-500 font-extrabold text-xs uppercase tracking-wider block mb-1">Kết nối Tech Store</span>
+              <h2 class="text-2xl font-black tracking-tight mb-3">Thông Tin Liên Hệ</h2>
+              <p class="text-slate-400 text-xs leading-relaxed">
+                Quý khách hàng có thể liên hệ trực tiếp với hệ thống tổng đài, địa chỉ trụ sở chính hoặc qua email chính thức của Tech Store. Kỹ sư tư vấn sẽ hỗ trợ trong vòng 15 phút.
+              </p>
+            </div>
+            
+            <div class="space-y-4 text-xs text-slate-300">
+              <div class="flex items-start gap-3">
+                <div class="p-2 bg-cyber-800 rounded-full text-cyber-500 mt-0.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                </div>
+                <div>
+                  <h4 class="font-bold text-white text-sm">Tổng đài chăm sóc khách hàng</h4>
+                  <p class="text-[11px] text-slate-400 mt-0.5">1800 6868 (Bán hàng & Hậu mãi - Miễn cước)</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <div class="p-2 bg-cyber-800 rounded-full text-cyber-500 mt-0.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                  <h4 class="font-bold text-white text-sm">Hòm thư điện tử (Email)</h4>
+                  <p class="text-[11px] text-slate-400 mt-0.5">hotro@techstore.vn / support@techstore.vn</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <div class="p-2 bg-cyber-800 rounded-full text-cyber-500 mt-0.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </div>
+                <div>
+                  <h4 class="font-bold text-white text-sm">Trụ sở chính hiển thị</h4>
+                  <p class="text-[11px] text-slate-400 mt-0.5">123 Nguyễn Huệ, Bến Nghé, Quận 1, TP. Hồ Chí Minh</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <div class="p-2 bg-cyber-800 rounded-full text-cyber-500 mt-0.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                  <h4 class="font-bold text-white text-sm">Giờ mở cửa chi nhánh</h4>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Mở cửa hằng ngày từ 8:00 đến 22:00 (Kể cả lễ, tết)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Form đăng ký tư vấn bên phải -->
+          <form onsubmit="handleContactSubmit(event)" class="bg-cyber-800/80 border border-cyber-750 p-6 rounded-2xl shadow-xl space-y-4">
+            <h3 class="text-sm font-black text-white mb-2 pb-2 border-b border-cyber-750 flex items-center gap-1.5 uppercase tracking-wider text-cyber-500">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              Gửi yêu cầu hỗ trợ cấu hình
+            </h3>
+            
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Họ và tên quý khách *</label>
+              <input type="text" id="contact-name" required class="w-full bg-cyber-900 border border-cyber-700 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 text-white" placeholder="Nguyễn Văn A">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Số điện thoại liên lạc *</label>
+              <input type="tel" id="contact-phone" required class="w-full bg-cyber-900 border border-cyber-700 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 text-white" placeholder="09xxxxxxxx">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Dòng sản phẩm tư vấn *</label>
+              <select id="contact-interest" class="w-full bg-cyber-900 border border-cyber-700 rounded-lg px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 text-white cursor-pointer">
+                <option value="Laptop Gaming">Laptop Gaming Asus ROG</option>
+                <option value="Smart Phone">Điện thoại di động / iPhone</option>
+                <option value="Build PC">Lắp ráp máy tính để bàn (PC)</option>
+                <option value="Gaming Gear">Bàn phím cơ & Chuột gaming</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Nội dung yêu cầu tư vấn *</label>
+              <textarea id="contact-message" required rows="3" class="w-full bg-cyber-900 border border-cyber-700 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 text-white" placeholder="Nhập chi tiết thông tin bạn cần chúng tôi hỗ trợ..."></textarea>
+            </div>
+            <button type="submit" class="w-full py-3.5 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-xs shadow-lg hover-scale glow-cyan transition-all border-0 cursor-pointer">
+              Gửi yêu cầu tư vấn cấu hình
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- =========================================================================
+       3.4 MODAL CHI TIẾT SẢN PHẨM (POPUP DIALOG)
+       ========================================================================= -->
+  <div id="product-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+    <div class="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-2xl border border-slate-200 mx-4 relative max-h-[90vh] overflow-y-auto">
+      
+      <!-- Nút đóng -->
+      <button onclick="closeProductDetailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-650 p-1.5 rounded-full hover:bg-slate-100 border-0 bg-transparent cursor-pointer">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <!-- Nội dung sản phẩm (Nạp động) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2" id="product-detail-content">
+        <!-- Đổ từ hàm showProductDetail() trong app.js -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3.5 MODAL HỆ THỐNG CỬA HÀNG CHI NHÁNH
+       ========================================================================= -->
+  <div id="store-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-200 mx-4 relative">
+      <button onclick="toggleStoreModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-slate-650 p-1.5 rounded-full hover:bg-slate-100 border-0 bg-transparent cursor-pointer">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+      <h3 class="text-sm font-black text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2 uppercase tracking-wider">
+        <svg class="w-5 h-5 text-cyber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+        Hệ thống cửa hàng Tech Store
+      </h3>
+      <div class="space-y-4 max-h-64 overflow-y-auto pr-1">
+        <div class="p-3.5 bg-slate-50 border border-slate-250 rounded-xl hover:border-cyan-300 hover:bg-slate-100/50 transition-all">
+          <h4 class="font-bold text-slate-850 text-sm">Tech Store Chi Nhánh Quận 1</h4>
+          <p class="text-xs text-slate-500 mt-1">Địa chỉ: 123 Nguyễn Huệ, Quận 1, TP. HCM</p>
+          <p class="text-xs text-slate-500">Số điện thoại: 028 1234 567</p>
+          <span class="inline-block mt-2 px-2.5 py-0.5 text-[9px] bg-emerald-100 text-emerald-850 rounded font-bold uppercase tracking-wider">Đang hoạt động (8:00 - 22:00)</span>
+        </div>
+        <div class="p-3.5 bg-slate-50 border border-slate-250 rounded-xl hover:border-cyan-300 hover:bg-slate-100/50 transition-all">
+          <h4 class="font-bold text-slate-850 text-sm">Tech Store Chi Nhánh Cầu Giấy</h4>
+          <p class="text-xs text-slate-500 mt-1">Địa chỉ: 456 Cầu Giấy, Quận Cầu Giấy, Hà Nội</p>
+          <p class="text-xs text-slate-500">Số điện thoại: 024 1234 567</p>
+          <span class="inline-block mt-2 px-2.5 py-0.5 text-[9px] bg-emerald-100 text-emerald-850 rounded font-bold uppercase tracking-wider">Đang hoạt động (8:00 - 22:00)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       4. PHẦN CHÂN TRANG FOOTER
+       ========================================== -->
+  <footer class="bg-cyber-900 text-white border-t border-cyber-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-xs">
+        <div>
+          <h3 class="text-xs font-black text-cyber-500 uppercase tracking-widest mb-3">Tech Store Việt Nam</h3>
+          <p class="text-slate-400 leading-relaxed text-[11px]">
+            Hệ thống phân phối thiết bị công nghệ chính hãng hàng đầu tại Việt Nam. Đáp ứng trọn vẹn nhu cầu góc máy tính cao cấp.
+          </p>
+        </div>
+        <div>
+          <h3 class="text-xs font-black text-white uppercase tracking-widest mb-3">Liên hệ hỗ trợ</h3>
+          <p class="text-slate-400">Hotline bán hàng: 1800 6868 (Miễn phí)</p>
+          <p class="text-slate-400">Hòm thư chăm sóc: hotro@techstore.vn</p>
+          <p class="text-slate-400">Trụ sở: 123 Nguyễn Huệ, Quận 1, TP. HCM</p>
+        </div>
+        <div>
+          <h3 class="text-xs font-black text-white uppercase tracking-widest mb-3">Thông tin chính sách</h3>
+          <ul class="text-slate-400 space-y-2 text-[11px]">
+            <li><a href="#" class="hover:text-cyber-500">Chính sách bảo hành vàng</a></li>
+            <li><a href="#" class="hover:text-cyber-500">Đổi trả trong vòng 30 ngày</a></li>
+            <li><a href="#" class="hover:text-cyber-500">Phương thức thanh toán & Vận chuyển</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-cyber-800 mt-8 pt-6 text-center text-slate-500 text-[10px] font-bold">
+        &copy; 2026 Tech Store. Tất cả bản quyền được bảo lưu.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Nhúng tệp xử lý logic chính -->
+  <script src="app.js"></script>
+</body>
+</html>
