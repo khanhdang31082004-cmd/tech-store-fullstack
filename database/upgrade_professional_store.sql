@@ -127,16 +127,25 @@ INSERT INTO `products` (`id`, `product_name`, `description`, `price`, `image_url
 (47, 'Tai nghe SteelSeries Arctis Nova 7 Wireless', 'Không dây đa nền tảng, Nova Acoustic System chuyên nghiệp, pin 38 tiếng.', 4990000.00, 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=500', 15, 7, 1),
 (48, 'Tai nghe không dây Marshall Monitor II A.N.C', 'Chụp tai phong cách classic, chống ồn chủ động, âm thanh Marshall đậm chất.', 7200000.00, 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=500', 8, 7, 2),
 
--- SSD (Danh mục 8)
-(11, 'SSD Samsung 990 Pro 1TB PCIe NVMe M.2', 'Tốc độ đọc ghi siêu tốc lên tới 7450/6900 MB/s, độ bền cao cho PC và laptop.', 2890000.00, 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=500', 11, 8, 1),
-(33, 'SSD Kingston NV2 1TB PCIe 4.0 NVMe', 'Lựa chọn tối ưu hiệu năng trên giá thành, đọc ghi 3500/2100 MB/s.', 1590000.00, 'https://images.unsplash.com/photo-1544006659-f0b21f04cb1d?w=500', 50, 8, 2),
-(34, 'SSD WD Black SN850X 2TB PCIe Gen4', 'SSD gaming siêu tốc 7300MB/s tương thích hoàn hảo cả PC và máy PS5.', 4690000.00, 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500', 25, 8, 1),
-(49, 'SSD Crucial P3 Plus 1TB M.2 PCIe Gen4', 'Dung lượng 1TB PCIe Gen4 NVMe, đọc 5000MB/s, hiệu năng ổn định giá tốt.', 1990000.00, 'https://images.unsplash.com/photo-1544006659-f0b21f04cb1d?w=500', 50, 8, 1),
-(50, 'SSD MSI Spatium M480 PRO 2TB', 'PCIe Gen4 x4 NVMe M.2 2280, tốc độ siêu khủng đọc ghi 7400/7000 MB/s.', 4890000.00, 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500', 25, 8, 2),
-
+(11, 'SSD Samsung 990 Pro 1TB PCIe NVMe M.2', 'Tốc độ đọc ghi siêu tốc lên tới 7450/6900 MB/s, độ bền cao cho PC và laptop.', 2890000.00, 'https://images.unsplash.com/photo-1591405351990-4726e331f141?w=500', 11, 8, 1),
+(33, 'SSD Kingston NV2 1TB PCIe 4.0 NVMe', 'Lựa chọn tối ưu hiệu năng trên giá thành, đọc ghi 3500/2100 MB/s.', 1590000.00, 'https://images.unsplash.com/photo-1601524909162-be87252be298?w=500', 50, 8, 2),
+(34, 'SSD WD Black SN850X 2TB PCIe Gen4', 'SSD gaming siêu tốc 7300MB/s tương thích hoàn hảo cả PC và máy PS5.', 4690000.00, 'https://images.unsplash.com/photo-1597872200919-281df04a91d1?w=500', 25, 8, 1),
+(49, 'SSD Crucial P3 Plus 1TB M.2 PCIe Gen4', 'Dung lượng 1TB PCIe Gen4 NVMe, đọc 5000MB/s, hiệu năng ổn định giá tốt.', 1990000.00, 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500', 50, 8, 1),
+(50, 'SSD MSI Spatium M480 PRO 2TB', 'PCIe Gen4 x4 NVMe M.2 2280, tốc độ siêu khủng đọc ghi 7400/7000 MB/s.', 4890000.00, 'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?w=500', 25, 8, 2),
 -- Phụ kiện máy tính (Danh mục 9)
 (51, 'Hub chuyển đổi USB-C sang HDMI/USB 3.0 Anker', 'Bộ chuyển đổi USB-C 5 trong 1 cao cấp, hỗ trợ xuất hình ảnh HDMI 4K và truyền dữ liệu siêu tốc.', 990000.00, 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=500', 30, 9, 1),
 (52, 'Giá đỡ Laptop hợp kim nhôm chỉnh độ cao Orico', 'Thiết kế công thái học xếp gọn, chất liệu nhôm nguyên khối tản nhiệt cực tốt cho laptop.', 350000.00, 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500', 100, 9, 2),
 (53, 'Kẹp giữ dây chuột gaming BenQ Zowie CAMADE II', 'Bungee giữ dây chuột có lò xo điều chỉnh độ cao linh hoạt, chống vướng víu dây khi di chuột FPS.', 690000.00, 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=500', 20, 9, 1),
 (54, 'Đèn treo màn hình bảo vệ mắt Baseus i-Wok', 'Đèn LED kẹp màn hình chống chói, điều chỉnh nhiệt độ màu 3 chế độ bảo vệ mắt ban đêm.', 850000.00, 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500', 15, 9, 2),
 (55, 'Lót chuột cỡ lớn Razer Strider XXL', 'Bàn di chuột gaming kích thước XXL, bề mặt vải lai chống thấm nước, tối ưu hóa tốc độ di chuột.', 1290000.00, 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=500', 50, 9, 1);
+
+-- 8. Chèn các tài khoản demo các vai trò phân quyền
+INSERT IGNORE INTO `users` (`id`, `username`, `password`, `email`, `role_id`, `store_id`, `is_active`) VALUES
+(3, 'owner', '123456', 'owner@techstore.com', 3, 1, 1),
+(4, 'manager', '123456', 'manager@techstore.com', 4, 1, 1),
+(5, 'staff', '123456', 'staff@techstore.com', 5, 1, 1);
+
+INSERT IGNORE INTO `customers` (`id`, `user_id`, `full_name`, `phone`, `address`) VALUES
+(3, 3, 'Trần Chủ Cửa Hàng', '0933333333', 'Quận 1, TP. HCM'),
+(4, 4, 'Lê Quản Lý Chi Nhánh', '0944444444', 'Cầu Giấy, Hà Nội'),
+(5, 5, 'Phạm Nhân Viên Bán Hàng', '0955555555', 'Quận 1, TP. HCM');

@@ -2,9 +2,10 @@
 // ĐỒ ÁN: WEBSITE BÁN MÁY TÍNH VÀ THIẾT BỊ CÔNG NGHỆ
 // FILE JAVASCRIPT: app.js - Các hàm dùng chung và logic Trang chủ index.html
 // =========================================================================
-
-// 1. CẤU HÌNH ĐƯỜNG DẪN BACKEND API CHUNG
-const API_BASE_URL = 'https://tech-store-fullstack-production.up.railway.app';
+// 1. CẤU HÌNH ĐƯỜNG DẪN BACKEND API CHUNG (Tự động thích ứng Local/Production)
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.includes('192.168.')
+  ? 'http://localhost:5000'
+  : 'https://tech-store-fullstack-production.up.railway.app';
 
 // Đọc Token và thông tin User hiện tại từ bộ nhớ trình duyệt localStorage
 let token = localStorage.getItem("token");
@@ -268,7 +269,7 @@ async function loadProducts() {
               <span class="absolute top-2 left-2 bg-slate-950/80 text-sky-400 font-bold text-[9px] px-2 py-0.5 rounded tracking-wide uppercase">${prod.category_name}</span>
             </div>
             
-            <h3 onclick="showProductDetail(${prod.id})" class="font-extrabold text-slate-800 text-[18px] leading-snug line-clamp-2 min-h-[3rem] hover:text-sky-500 cursor-pointer transition-colors">${prod.product_name}</h3>
+            <h3 onclick="showProductDetail(${prod.id})" class="font-extrabold text-slate-800 text-[20px] leading-snug line-clamp-2 min-h-[3.5rem] hover:text-sky-500 cursor-pointer transition-colors">${prod.product_name}</h3>
             
             <!-- Đánh giá sao chuyên nghiệp -->
             <div class="flex items-center gap-1 mt-1">
@@ -277,14 +278,14 @@ async function loadProducts() {
             </div>
 
             <!-- Chữ mô tả lớn hơn, dễ đọc và tương phản tốt -->
-            <p class="text-slate-600 text-[14px] mt-2 line-clamp-2 min-h-[2.5rem] leading-relaxed">${prod.description || 'Chưa có thông số kỹ thuật chi tiết.'}</p>
+            <p class="text-slate-650 text-[15px] mt-2 line-clamp-2 min-h-[2.8rem] leading-relaxed">${prod.description || 'Chưa có thông số kỹ thuật chi tiết.'}</p>
           </div>
           
           <div class="mt-3.5 border-t border-slate-100 pt-3">
             <div class="flex items-end justify-between mb-3">
               <div>
                 <span class="text-[10px] text-slate-400 block font-semibold leading-none">Giá ưu đãi:</span>
-                <span class="text-[20px] font-black text-sky-600">${formatCurrency(prod.price)}</span>
+                <span class="text-[22px] font-black text-sky-600">${formatCurrency(prod.price)}</span>
               </div>
               <span class="text-[10px] text-slate-400 font-bold">Kho: <strong class="text-slate-700 font-black">${prod.stock_quantity}</strong></span>
             </div>
@@ -294,19 +295,19 @@ async function loadProducts() {
             </div>
           </div>
 
-          <!-- Hover Detail Overlay (pointer-events-none) -->
-          <div class="absolute inset-0 bg-slate-955/95 text-white p-5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between z-10 pointer-events-none">
+          <!-- Hover Detail Overlay (Solid dark background to fully cover the card contents behind it) -->
+          <div class="absolute inset-0 bg-slate-950 text-white p-5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between z-10 pointer-events-none">
             <div>
               <span class="text-[9px] text-sky-400 font-extrabold uppercase tracking-wider block mb-1">${prod.category_name}</span>
               <h4 class="font-extrabold text-[15px] mb-3 leading-snug text-sky-300">${prod.product_name}</h4>
-              <div class="text-[11px] text-slate-350 space-y-1.5 leading-relaxed">
-                <p class="border-b border-slate-850 pb-1.5"><strong class="text-white">Cấu hình:</strong> ${prod.description || 'Thông số chi tiết cập nhật liên tục'}</p>
+              <div class="text-[11px] text-slate-300 space-y-2 leading-relaxed">
+                <p class="border-b border-slate-800 pb-2"><strong class="text-white">Cấu hình:</strong> ${prod.description || 'Thông số chi tiết cập nhật liên tục'}</p>
                 <p><strong class="text-white">Bảo hành:</strong> 12 tháng chính hãng</p>
                 <p><strong class="text-white">Tình trạng:</strong> ${prod.stock_quantity > 0 ? 'Còn hàng (Mới 100%)' : 'Hết hàng (Nhận đặt trước)'}</p>
                 <p><strong class="text-white">Chi nhánh:</strong> ${prod.store_name || 'Hệ thống Tech Store Việt Nam'}</p>
               </div>
             </div>
-            <div class="text-[10px] text-slate-400 italic text-center border-t border-slate-850 pt-2">
+            <div class="text-[10px] text-slate-400 italic text-center border-t border-slate-800 pt-2">
               Click vào chi tiết để xem thêm
             </div>
           </div>

@@ -192,9 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const payment = document.getElementById("checkout-payment") ? document.getElementById("checkout-payment").value : "cod";
       const cccd = document.getElementById("checkout-cccd") ? document.getElementById("checkout-cccd").value.trim() : "";
       const notes = document.getElementById("checkout-notes") ? document.getElementById("checkout-notes").value.trim() : "";
-
-      if (!fullname || !phone || !address) {
-        showToast("Vui lòng nhập đầy đủ thông tin giao hàng bắt buộc.", "error");
+      if (!fullname || !phone || !address || !cccd) {
+        showToast("Vui lòng nhập đầy đủ Họ tên, Số điện thoại, Địa chỉ và Số CCCD.", "error");
         return;
       }
 
