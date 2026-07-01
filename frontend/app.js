@@ -4,7 +4,7 @@
 // =========================================================================
 
 // 1. CẤU HÌNH ĐƯỜNG DẪN BACKEND API CHUNG
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = "https://tech-store-fullstack-production.up.railway.app";
 
 // Đọc Token và thông tin User hiện tại từ bộ nhớ trình duyệt localStorage
 let token = localStorage.getItem("token");
