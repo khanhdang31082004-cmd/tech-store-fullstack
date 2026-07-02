@@ -82,6 +82,10 @@ document.addEventListener("DOMContentLoaded", () => {
           throw new Error(data.message || "Đăng nhập thất bại.");
         }
 
+        if (data.user.role !== 'user') {
+          throw new Error("Tài khoản quản trị vui lòng đăng nhập tại trang Quản trị (admin-login.html).");
+        }
+
         // Xóa sạch các key rác cũ nếu có
         localStorage.removeItem("adminToken");
         localStorage.removeItem("authToken");
