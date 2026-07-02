@@ -32,8 +32,14 @@ function applyRolePermissions() {
   // Hiển thị Username và Role
   const nameEl = document.getElementById("sidebar-username");
   const roleEl = document.getElementById("sidebar-role");
-  if (nameEl) nameEl.textContent = adminUser.username;
-  if (roleEl) roleEl.textContent = role;
+  if (nameEl) nameEl.textContent = adminUser.full_name || adminUser.username || "Người dùng";
+  if (roleEl) {
+    if (typeof getVietnameseRole === "function") {
+      roleEl.textContent = getVietnameseRole(role);
+    } else {
+      roleEl.textContent = role;
+    }
+  }
 
   // Ẩn menu theo vai trò
   if (role === 'staff') {
@@ -392,6 +398,7 @@ async function loadAdminOrders() {
         </div>
       `;
 
+      const displayName = order.recipient_name || order.customer_name || order.full_name || order.username || 'Khách vãng lai';
       html += `
         <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-b-0 text-slate-700 font-medium">
           <td class="px-6 py-4 font-bold text-slate-800">
@@ -399,7 +406,7 @@ async function loadAdminOrders() {
             <div class="text-[10px] text-slate-400 font-normal">${new Date(order.created_at).toLocaleString('vi-VN')}</div>
           </td>
           <td class="px-6 py-4 max-w-xs">
-            <div class="text-sm font-bold text-slate-850">${order.username || 'Khách vãng lai'}</div>
+            <div class="text-sm font-bold text-slate-850">${displayName}</div>
             ${detailsMeta}
           </td>
           <td class="px-6 py-4 max-w-xs">${itemsDetailsHtml}</td>
@@ -488,23 +495,24 @@ async function loadAdminCustomers() {
       const users = await res.json();
       const customers = users.filter(u => u.role_id === 2);
       if (customers.length === 0) {
-        table.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-400">Không có khách hàng đăng ký nào.</td></tr>`;
+        table.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400">Chưa có khách hàng đăng ký</td></tr>`;
         return;
       }
       table.innerHTML = customers.map(cust => `
         <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-b-0 text-slate-700 font-medium">
           <td class="px-6 py-4 font-bold text-slate-800">#KH-00${cust.id}</td>
           <td class="px-6 py-4">
-            <div class="font-bold text-slate-800">${cust.username}</div>
-            <div class="text-slate-450 text-[11px]">${cust.email}</div>
+            <div class="font-bold text-slate-800">${cust.full_name || 'Khách hàng đã đăng ký'}</div>
+            ${cust.email ? `<div class="text-slate-450 text-[11px]">${cust.email}</div>` : ''}
           </td>
           <td class="px-6 py-4 text-slate-650 font-bold">${cust.phone || 'Chưa cập nhật'}</td>
-          <td class="px-6 py-4 text-slate-500">${cust.address || 'Chưa cập nhật'}</td>
+          <td class="px-6 py-4 text-slate-500">${cust.hometown || cust.address || 'Chưa cập nhật'}</td>
+          <td class="px-6 py-4 text-slate-500">${cust.is_active ? '<span class="text-emerald-600 font-bold">Hoạt động</span>' : '<span class="text-rose-600 font-bold">Bị khóa</span>'}</td>
         </tr>
       `).join('');
     }
   } catch (err) {
-    table.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-rose-500">Lỗi: ${err.message}</td></tr>`;
+    table.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400">Chưa có khách hàng đăng ký</td></tr>`;
   }
 }
 
@@ -587,6 +595,9 @@ async function editEmployee(id) {
         document.getElementById("employee-role").value = emp.role_id;
         document.getElementById("employee-store").value = emp.store_id || "";
         document.getElementById("employee-active").value = emp.is_active;
+        if (document.getElementById("employee-fullname")) document.getElementById("employee-fullname").value = emp.full_name || "";
+        if (document.getElementById("employee-phone")) document.getElementById("employee-phone").value = emp.phone || "";
+        if (document.getElementById("employee-hometown")) document.getElementById("employee-hometown").value = emp.hometown || "";
       }
     }
   } catch (err) {
@@ -789,50 +800,13 @@ function getVietnameseRole(role) {
   }
 }
 
-// Áp dụng ẩn hiện menu dựa theo phân quyền nhân viên đăng nhập
-function applyRolePermissions() {
-  if (!adminUser) return;
-  const role = adminUser.role;
-
-  // Hiển thị thông tin sidebar
-  const usernameEl = document.getElementById("sidebar-username");
-  const roleEl = document.getElementById("sidebar-role");
-  if (usernameEl) {
-    usernameEl.textContent = `Xin chào, ${adminUser.full_name || adminUser.username || "Người dùng"}`;
-  }
-  if (roleEl) {
-    roleEl.textContent = `Vai trò: ${getVietnameseRole(role)}`;
-  }
-
-  if (role === 'staff') {
-    document.getElementById("menu-dashboard")?.classList.add("hidden");
-    document.getElementById("menu-products")?.classList.add("hidden");
-    document.getElementById("menu-categories")?.classList.add("hidden");
-    document.getElementById("menu-employees")?.classList.add("hidden");
-    document.getElementById("menu-revenue")?.classList.add("hidden");
-    document.getElementById("menu-settings")?.classList.add("hidden");
-    const addProdBtn = document.querySelector('[onclick="openProductModal()"]');
-    if (addProdBtn) addProdBtn.classList.add("hidden");
-  } else if (role === 'manager') {
-    document.getElementById("menu-categories")?.classList.add("hidden");
-    document.getElementById("menu-employees")?.classList.add("hidden");
-    document.getElementById("menu-revenue")?.classList.add("hidden");
-    document.getElementById("menu-settings")?.classList.add("hidden");
-    const addStoreBtn = document.getElementById("btn-add-store");
-    if (addStoreBtn) addStoreBtn.classList.add("hidden");
-  } else if (role === 'owner') {
-    document.getElementById("menu-categories")?.classList.add("hidden");
-    document.getElementById("menu-customers")?.classList.add("hidden");
-  }
-  
-  loadStoresIntoSelects();
-}
 
 // =========================================================================
 // 10. KHỞI TẠO CÁC SỰ KIỆN SUBMIT VÀ LOAD DỮ LIỆU BAN ĐẦU
 // =========================================================================
 document.addEventListener("DOMContentLoaded", () => {
   applyRolePermissions();
+  if (typeof loadStoresIntoSelects === 'function') loadStoresIntoSelects();
   loadCategoriesIntoModal(); // Tải danh mục vào form popup modal
   
   let defaultTab = 'dashboard';
@@ -910,12 +884,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = document.getElementById("employee-email").value.trim();
       const roleId = document.getElementById("employee-role").value;
       const storeId = document.getElementById("employee-store").value;
+      const fullNameEl = document.getElementById("employee-fullname");
+      const phoneEl = document.getElementById("employee-phone");
+      const hometownEl = document.getElementById("employee-hometown");
+      
+      // Validate username: không dấu, không cách
+      const usernameRegex = /^[a-zA-Z0-9_]+$/;
+      if (!usernameRegex.test(username)) {
+        showToast("Tên đăng nhập không được có dấu hoặc khoảng trắng. Ví dụ: nguyenvanqa", "error");
+        return;
+      }
 
       const bodyData = {
         username,
         email,
         role_id: parseInt(roleId),
-        store_id: storeId ? parseInt(storeId) : null
+        store_id: storeId ? parseInt(storeId) : null,
+        full_name: fullNameEl ? fullNameEl.value.trim() : null,
+        phone: phoneEl ? phoneEl.value.trim() : null,
+        hometown: hometownEl ? hometownEl.value.trim() : null
       };
 
       if (!empId) {
@@ -935,7 +922,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Thao tác thất bại.");
 
-        showToast(data.message || "Lưu thông tin nhân sự thành công!", "success");
+        const successMsg = empId ? "Cập nhật tài khoản nhân viên thành công" : "Tạo tài khoản nhân viên thành công";
+        showToast(successMsg, "success");
         closeEmployeeModal();
         loadAdminEmployees();
 

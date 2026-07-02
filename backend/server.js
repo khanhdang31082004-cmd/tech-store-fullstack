@@ -1156,7 +1156,7 @@ app.delete('/api/cart', authenticateToken, async (req, res) => {
 app.get('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
   try {
     const [users] = await pool.query(
-      `SELECT u.id, u.username, u.email, u.role_id, r.role_name, u.store_id, s.store_name, u.is_active, u.created_at
+      `SELECT u.id, u.username, u.email, u.role_id, r.role_name, u.store_id, s.store_name, u.is_active, u.created_at, u.full_name, u.phone, u.hometown
        FROM users u
        JOIN roles r ON u.role_id = r.id
        LEFT JOIN stores s ON u.store_id = s.id
@@ -1169,53 +1169,65 @@ app.get('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
 });
 
 // Admin tạo tài khoản nhân viên / quản lý / chủ cửa hàng mới
+// Admin tạo tài khoản nhân viên / quản lý / chủ cửa hàng mới
 app.post('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
-  const { username, password, email, role_id, store_id } = req.body;
+  const { username, password, email, role_id, store_id, full_name, phone, hometown } = req.body;
   if (!username || !password || !email || !role_id) {
-    return res.status(400).json({ message: 'Thiếu thông tin bắt buộc để tạo tài khoản.' });
+    return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc để tạo tài khoản.' });
   }
 
   try {
-    const [existing] = await pool.query('SELECT id FROM users WHERE username = ? OR email = ?', [username, email]);
+    const [existing] = await pool.query('SELECT id, username, email FROM users WHERE username = ? OR email = ?', [username, email]);
     if (existing.length > 0) {
-      return res.status(409).json({ message: 'Tên đăng nhập hoặc Email đã tồn tại.' });
+      if (existing[0].username === username) return res.status(409).json({ success: false, message: 'Tên đăng nhập đã tồn tại.' });
+      return res.status(409).json({ success: false, message: 'Email đã tồn tại.' });
     }
 
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
 
     await pool.query(
-      'INSERT INTO users (username, password, email, role_id, store_id, is_active) VALUES (?, ?, ?, ?, ?, 1)',
-      [username, hashedPassword, email, parseInt(role_id), store_id ? parseInt(store_id) : null]
+      'INSERT INTO users (username, password, email, role_id, store_id, full_name, phone, hometown, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)',
+      [username, hashedPassword, email, parseInt(role_id), store_id ? parseInt(store_id) : null, full_name || null, phone || null, hometown || null]
     );
 
-    return res.status(201).json({ message: 'Tạo tài khoản thành công!' });
+    return res.status(201).json({ success: true, message: 'Tạo tài khoản nhân viên thành công!' });
   } catch (error) {
-    return res.status(500).json({ message: 'Lỗi tạo tài khoản.', error: error.message });
+    return res.status(500).json({ success: false, message: 'Lỗi tạo tài khoản.', error: error.message });
   }
 });
 
 // Admin cập nhật quyền / thông tin tài khoản / khóa tài khoản
 app.put('/api/admin/users/:id', authenticateToken, isAdmin, async (req, res) => {
   const userId = req.params.id;
-  const { role_id, store_id, is_active } = req.body;
+  const { role_id, store_id, is_active, full_name, phone, hometown, email } = req.body;
 
   try {
     const [check] = await pool.query('SELECT id FROM users WHERE id = ?', [userId]);
     if (check.length === 0) {
-      return res.status(404).json({ message: 'Tài khoản không tồn tại.' });
+      return res.status(404).json({ success: false, message: 'Tài khoản không tồn tại.' });
     }
 
     await pool.query(
       `UPDATE users 
-       SET role_id = COALESCE(?, role_id), store_id = ?, is_active = COALESCE(?, is_active) 
+       SET role_id = COALESCE(?, role_id), store_id = ?, is_active = COALESCE(?, is_active),
+           full_name = COALESCE(?, full_name), phone = COALESCE(?, phone), hometown = COALESCE(?, hometown), email = COALESCE(?, email)
        WHERE id = ?`,
-      [role_id ? parseInt(role_id) : null, store_id ? parseInt(store_id) : null, is_active !== undefined ? parseInt(is_active) : null, userId]
+      [
+        role_id ? parseInt(role_id) : null, 
+        store_id ? parseInt(store_id) : null, 
+        is_active !== undefined ? parseInt(is_active) : null, 
+        full_name !== undefined ? full_name : null,
+        phone !== undefined ? phone : null,
+        hometown !== undefined ? hometown : null,
+        email !== undefined ? email : null,
+        userId
+      ]
     );
 
-    return res.status(200).json({ message: 'Cập nhật tài khoản thành công!' });
+    return res.status(200).json({ success: true, message: 'Cập nhật tài khoản thành công!' });
   } catch (error) {
-    return res.status(500).json({ message: 'Lỗi cập nhật tài khoản.', error: error.message });
+    return res.status(500).json({ success: false, message: 'Lỗi cập nhật tài khoản.', error: error.message });
   }
 });
 

@@ -333,11 +333,12 @@
                 <th class="px-6 py-3.5">Tên khách hàng</th>
                 <th class="px-6 py-3.5">Số điện thoại</th>
                 <th class="px-6 py-3.5">Địa chỉ giao hàng mặc định</th>
+                <th class="px-6 py-3.5">Trạng thái</th>
               </tr>
             </thead>
             <tbody id="admin-customers-table" class="divide-y divide-slate-100">
               <tr>
-                <td colspan="4" class="text-center py-12 text-slate-400">Đang tải danh sách khách hàng...</td>
+                <td colspan="5" class="text-center py-12 text-slate-400">Đang tải danh sách khách hàng...</td>
               </tr>
             </tbody>
           </table>
@@ -471,17 +472,33 @@
       <h3 id="employee-modal-title" class="text-base font-black text-slate-800 mb-4 pb-2 border-b border-slate-100 uppercase tracking-wider">Thêm tài khoản nhân viên</h3>
       <form id="form-employee" class="space-y-4">
         <input type="hidden" id="modal-employee-id">
-        <div>
-          <label for="employee-username" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Tên đăng nhập *</label>
-          <input type="text" id="employee-username" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="employee-username" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Tên đăng nhập *</label>
+            <input type="text" id="employee-username" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+          </div>
+          <div>
+            <label for="employee-email" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Email *</label>
+            <input type="email" id="employee-email" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+          </div>
         </div>
         <div id="employee-password-container">
           <label for="employee-password" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Mật khẩu *</label>
           <input type="password" id="employee-password" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
         </div>
         <div>
-          <label for="employee-email" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Email *</label>
-          <input type="email" id="employee-email" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+          <label for="employee-fullname" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Họ và tên</label>
+          <input type="text" id="employee-fullname" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="employee-phone" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Số điện thoại</label>
+            <input type="tel" id="employee-phone" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+          </div>
+          <div>
+            <label for="employee-hometown" class="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Quê quán</label>
+            <input type="text" id="employee-hometown" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
+          </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
