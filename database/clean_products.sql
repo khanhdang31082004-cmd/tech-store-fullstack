@@ -366,5 +366,21 @@ UPDATE products SET
   image_url    = 'https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=600'
 WHERE id = 55;
 
+-- =========================================================================
+-- DỌN DẸP DỮ LIỆU RÁC VÀ TRÙNG LẶP
+-- =========================================================================
+
+-- 1. Xóa sản phẩm trùng tên (Giữ lại sản phẩm có id lớn nhất)
+DELETE p1 FROM products p1
+INNER JOIN products p2 
+WHERE p1.product_name = p2.product_name AND p1.id < p2.id;
+
+-- 2. Xóa các sản phẩm test/rác (Tên quá ngắn hoặc ảnh mơ hồ không hợp lệ)
+DELETE FROM products 
+WHERE LENGTH(product_name) < 5 
+   OR image_url IS NULL 
+   OR image_url = ''
+   OR image_url NOT LIKE 'http%';
+
 -- Xác nhận hoàn thành
-SELECT CONCAT('Đã cập nhật ', COUNT(*), ' sản phẩm') AS ket_qua FROM products WHERE id BETWEEN 1 AND 55;
+SELECT CONCAT('Sau khi dọn dẹp, còn lại ', COUNT(*), ' sản phẩm hợp lệ') AS ket_qua FROM products;

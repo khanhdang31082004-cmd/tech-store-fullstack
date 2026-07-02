@@ -262,15 +262,11 @@ async function loadProducts() {
       html += `
         <div class="product-card bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-sky-200">
           <!-- Ảnh + tag danh mục + tooltip slide-up khi hover -->
-          <div onclick="showProductDetail(${prod.id})" class="relative h-44 w-full bg-slate-100 rounded-xl overflow-hidden mb-3 cursor-pointer flex-shrink-0">
-            <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" alt="${prod.product_name}" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
-            ${isOutOfStock ? `<div class="absolute inset-0 bg-slate-900/50 flex items-center justify-center"><span class="bg-rose-600 text-white font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">Hết hàng</span></div>` : ''}
-            <span class="absolute top-2 left-2 bg-slate-900/75 text-sky-400 font-bold text-[9px] px-2 py-0.5 rounded tracking-wide uppercase backdrop-blur-sm">${prod.category_name}</span>
-            <!-- Tooltip mô tả: trượt lên từ phía dưới ảnh, chỉ phủ ảnh không che card -->
-            <div class="absolute bottom-0 left-0 right-0 bg-slate-900/88 text-white text-[11px] px-3 py-2 leading-snug translate-y-full hover-tooltip-show transition-transform duration-300 pointer-events-none line-clamp-2">
-              ${prod.description || 'Sản phẩm công nghệ chính hãng.'}
+            <div onclick="showProductDetail(${prod.id})" class="relative h-44 w-full bg-slate-100 rounded-xl overflow-hidden mb-3 cursor-pointer flex-shrink-0">
+              <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" alt="${prod.product_name}" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+              ${isOutOfStock ? `<div class="absolute inset-0 bg-slate-900/50 flex items-center justify-center"><span class="bg-rose-600 text-white font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">Hết hàng</span></div>` : ''}
+              <span class="absolute top-2 left-2 bg-slate-900/75 text-sky-400 font-bold text-[9px] px-2 py-0.5 rounded tracking-wide uppercase backdrop-blur-sm">${prod.category_name}</span>
             </div>
-          </div>
 
           <!-- Nội dung card: flex-1 đảm bảo các card bằng chiều cao nhau -->
           <div class="flex flex-col flex-1">
