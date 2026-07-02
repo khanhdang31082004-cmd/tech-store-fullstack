@@ -61,10 +61,17 @@ function applyRolePermissions() {
 
 // Hàm đăng xuất riêng cho Admin
 function adminLogout() {
+  const role = localStorage.getItem("role");
+
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   localStorage.removeItem("role");
-  window.location.href = "admin-login.html";
+
+  if (["admin", "owner", "manager", "staff"].includes(role)) {
+    window.location.href = "admin-login.html";
+  } else {
+    window.location.href = "auth.html";
+  }
 }
 
 // Cập nhật đồng hồ thời gian trên header quản trị

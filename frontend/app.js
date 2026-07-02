@@ -145,10 +145,17 @@ function updateNavbar() {
 
 // Hàm đăng xuất: Xóa token khỏi bộ nhớ local và quay lại trang chủ
 function logout() {
+  const role = localStorage.getItem("role");
+
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   localStorage.removeItem("role");
-  window.location.href = "auth.html";
+
+  if (["admin", "owner", "manager", "staff"].includes(role)) {
+    window.location.href = "admin-login.html";
+  } else {
+    window.location.href = "auth.html";
+  }
 }
 
 // =========================================================================
