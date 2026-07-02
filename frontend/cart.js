@@ -23,6 +23,8 @@ function renderCart() {
   }
 
   // Nếu giỏ hàng rỗng: Hiển thị giao diện báo rỗng & ẩn form thanh toán
+  const clearCartContainer = document.getElementById("clear-cart-container");
+  
   if (cart.length === 0) {
     container.innerHTML = `
       <div class="text-center py-16 px-4">
@@ -37,8 +39,12 @@ function renderCart() {
     
     const checkoutForm = document.getElementById("form-checkout");
     if (checkoutForm) checkoutForm.classList.add("hidden");
+    if (clearCartContainer) clearCartContainer.classList.add("hidden");
     return;
   }
+
+  if (clearCartContainer) clearCartContainer.classList.remove("hidden");
+  clearCartContainer.classList.add("flex"); // Ensure flex is applied since it might be hidden initially
 
   let html = "";
   let totalCost = 0; // Bộ tính tổng tiền
@@ -138,7 +144,17 @@ function removeFromCart(productId) {
   localStorage.setItem("cart", JSON.stringify(newCart));
   showToast("Đã xóa sản phẩm khỏi giỏ hàng.", "info");
   renderCart();
-  updateCartBadge();
+  if (typeof updateCartBadge === 'function') updateCartBadge();
+}
+
+// 3.5. XÓA TOÀN BỘ GIỎ HÀNG
+function clearCart() {
+  if (confirm("Bạn có chắc muốn xóa toàn bộ sản phẩm khỏi giỏ hàng?")) {
+    localStorage.removeItem("cart");
+    showToast("Đã xóa toàn bộ giỏ hàng.", "info");
+    renderCart();
+    if (typeof updateCartBadge === 'function') updateCartBadge();
+  }
 }
 
 // =========================================================================

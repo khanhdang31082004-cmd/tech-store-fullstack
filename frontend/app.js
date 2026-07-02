@@ -455,11 +455,35 @@ function removeFromMiniCart(productId) {
 }
 
 // Mở/Đóng Popup Hệ thống cửa hàng
-function toggleStoreModal(state) {
+async function toggleStoreModal(state) {
   const modal = document.getElementById("store-modal");
-  if (modal) {
-    if (state) modal.classList.remove("hidden");
-    else modal.classList.add("hidden");
+  if (!modal) return;
+  if (state) {
+    modal.classList.remove("hidden");
+    const container = modal.querySelector(".space-y-4");
+    if (container) {
+      container.innerHTML = `<div class="text-center py-4 text-slate-400">Đang tải thông tin...</div>`;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/stores`);
+        const stores = await response.json();
+        if (stores.length > 0) {
+          container.innerHTML = stores.map(store => `
+            <div class="p-3.5 bg-slate-50 border border-slate-250 rounded-xl hover:border-cyan-300 hover:bg-slate-100/50 transition-all">
+              <h4 class="font-bold text-slate-850 text-sm">${store.store_name}</h4>
+              <p class="text-xs text-slate-500 mt-1">Địa chỉ: ${store.address}</p>
+              <p class="text-xs text-slate-500">Số điện thoại: ${store.phone || 'Đang cập nhật'}</p>
+              <span class="inline-block mt-2 px-2.5 py-0.5 text-[9px] bg-emerald-100 text-emerald-850 rounded font-bold uppercase tracking-wider">Đang hoạt động (8:00 - 22:00)</span>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = `<div class="text-center py-4 text-slate-400 text-sm">Chưa có chi nhánh nào.</div>`;
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="text-center py-4 text-rose-500 text-sm">Lỗi tải danh sách chi nhánh.</div>`;
+      }
+    }
+  } else {
+    modal.classList.add("hidden");
   }
 }
 
@@ -635,8 +659,8 @@ async function showProductDetail(productId) {
     }
 
     content.innerHTML = `
-      <div class="h-64 md:h-full w-full bg-slate-100 rounded-xl overflow-hidden shadow-inner">
-        <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500';" alt="${prod.product_name}" class="w-full h-full object-cover">
+      <div class="flex items-center justify-center w-full bg-slate-50 rounded-xl overflow-hidden shadow-inner p-2 border border-slate-100">
+        <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500';" alt="${prod.product_name}" class="w-full object-contain rounded-lg" style="max-height: 420px;">
       </div>
       <div class="flex flex-col justify-between">
         <div>

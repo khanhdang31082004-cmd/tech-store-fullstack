@@ -1,3 +1,160 @@
+
+-- =========================================================================
+-- FILE: database/MASTER_DATABASE.sql
+-- MÔ TẢ: FILE GỘP TOÀN BỘ DATABASE (INIT, TABLES, DATA, CLEANUP)
+-- =========================================================================
+
+-- =========================
+-- 1. KHỞI TẠO DATABASE
+-- =========================
+CREATE DATABASE IF NOT EXISTS `tech_store` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `tech_store`;
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
+-- =========================
+-- 2. TẠO BẢNG (ADMIN SYSTEM)
+-- =========================
+CREATE TABLE IF NOT EXISTS `roles` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: Tự động tăng
+  `role_name` VARCHAR(50) NOT NULL UNIQUE -- Tên vai trò (admin, user) - Phải duy nhất
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `stores` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID cửa hàng
+  `store_name` VARCHAR(100) NOT NULL, -- Tên cửa hàng
+  `address` VARCHAR(255) NOT NULL, -- Địa chỉ chi nhánh
+  `phone` VARCHAR(20) DEFAULT NULL -- Số điện thoại chi nhánh
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID tài khoản
+  `username` VARCHAR(50) NOT NULL UNIQUE, -- Tên đăng nhập (duy nhất)
+  `password` VARCHAR(255) NOT NULL, -- Mật khẩu (sẽ được mã hóa bcrypt ở Backend)
+  `email` VARCHAR(100) NOT NULL UNIQUE, -- Địa chỉ email (duy nhất)
+  `role_id` INT NOT NULL, -- Khóa ngoại: Liên kết đến bảng vai trò (roles)
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Thời gian tạo tài khoản tự động
+  FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE -- Khóa ngoại ràng buộc
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `customers` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID khách hàng
+  `user_id` INT NOT NULL UNIQUE, -- Khóa ngoại: Liên kết 1-1 với tài khoản đăng nhập (users)
+  `full_name` VARCHAR(100) NOT NULL, -- Họ và tên khách hàng
+  `phone` VARCHAR(20) DEFAULT NULL, -- Số điện thoại khách hàng
+  `address` VARCHAR(255) DEFAULT NULL, -- Địa chỉ nhận hàng mặc định
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE -- Khóa ngoại ràng buộc
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID danh mục
+  `category_name` VARCHAR(100) NOT NULL UNIQUE, -- Tên danh mục (duy nhất)
+  `description` TEXT DEFAULT NULL -- Mô tả danh mục sản phẩm
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `products` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID sản phẩm
+  `product_name` VARCHAR(150) NOT NULL, -- Tên sản phẩm thiết bị
+  `description` TEXT DEFAULT NULL, -- Mô tả chi tiết thông số kỹ thuật sản phẩm
+  `price` DECIMAL(15, 2) NOT NULL, -- Giá bán (kiểu số thực lưu trữ chính xác tiền tệ)
+  `image_url` VARCHAR(500) DEFAULT NULL, -- Đường dẫn hình ảnh minh họa sản phẩm
+  `stock_quantity` INT NOT NULL DEFAULT 0, -- Số lượng tồn kho (mặc định bằng 0)
+  `category_id` INT DEFAULT NULL, -- Khóa ngoại: Thuộc danh mục nào (categories)
+  `store_id` INT DEFAULT NULL, -- Khóa ngoại: Nằm ở chi nhánh nào (stores)
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL, -- Nếu xóa danh mục, sản phẩm thành NULL
+  FOREIGN KEY (`store_id`) REFERENCES `stores` (`id`) ON DELETE SET NULL -- Nếu xóa cửa hàng, sản phẩm thành NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `orders` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID đơn hàng
+  `customer_id` INT NOT NULL, -- Khóa ngoại: Thuộc về khách hàng nào (customers)
+  `total_amount` DECIMAL(15, 2) NOT NULL, -- Tổng số tiền của toàn đơn hàng
+  `status` ENUM('Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled') DEFAULT 'Pending', -- Trạng thái đơn đặt hàng
+  `shipping_address` VARCHAR(255) NOT NULL, -- Địa chỉ giao hàng cụ thể
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE -- Xóa khách hàng xóa luôn đơn hàng
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `order_details` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính
+  `order_id` INT NOT NULL, -- Khóa ngoại: Thuộc đơn hàng nào (orders)
+  `product_id` INT NOT NULL, -- Khóa ngoại: Sản phẩm nào được mua (products)
+  `quantity` INT NOT NULL, -- Số lượng mua sản phẩm đó
+  `price` DECIMAL(15, 2) NOT NULL, -- Đơn giá của sản phẩm tại thời điểm mua hàng
+  FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE, -- Xóa đơn hàng xóa luôn chi tiết
+  FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE -- Xóa sản phẩm xóa luôn chi tiết
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================
+-- 3. CHI NHÁNH CỬA HÀNG
+-- =========================
+INSERT INTO `stores` (`id`, `store_name`, `address`, `phone`) VALUES 
+(1, 'Tech Store Q1', '123 Nguyễn Huệ, Quận 1, TP. HCM', '0281234567'),
+(2, 'Tech Store Cầu Giấy', '456 Cầu Giấy, Quận Cầu Giấy, Hà Nội', '0241234567');
+
+-- =========================
+-- 4. ROLES VÀ TÀI KHOẢN DEMO
+-- =========================
+-- 1. Bổ sung các vai trò (roles) nếu chưa có
+INSERT IGNORE INTO roles (role_name) VALUES ('admin'), ('user'), ('store_owner'), ('manager'), ('staff');
+
+-- 2. Bổ sung các cột thông tin nhân viên vào bảng users
+-- LƯU Ý: Dùng PROCEDURE để ADD COLUMN an toàn (tránh lỗi Duplicate Column nếu chạy lại 2 lần)
+DELIMITER //
+CREATE PROCEDURE AddColumnsSafely()
+BEGIN
+    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'full_name') THEN
+        ALTER TABLE users ADD COLUMN full_name VARCHAR(100) DEFAULT NULL;
+    END IF;
+    
+    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'phone') THEN
+        ALTER TABLE users ADD COLUMN phone VARCHAR(20) DEFAULT NULL;
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'hometown') THEN
+        ALTER TABLE users ADD COLUMN hometown VARCHAR(100) DEFAULT NULL;
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'store_id') THEN
+        ALTER TABLE users ADD COLUMN store_id INT DEFAULT NULL;
+    END IF;
+END //
+DELIMITER ;
+CALL AddColumnsSafely();
+DROP PROCEDURE IF EXISTS AddColumnsSafely;
+
+-- 3. Tạo các tài khoản demo (Nếu chưa có)
+INSERT IGNORE INTO users (username, password, email, role_id) VALUES 
+('admin', '123456', 'admin@techstore.com', (SELECT id FROM roles WHERE role_name = 'admin')),
+('user', '123456', 'user@techstore.com', (SELECT id FROM roles WHERE role_name = 'user')),
+('owner', '123456', 'owner@techstore.com', (SELECT id FROM roles WHERE role_name = 'store_owner')),
+('manager', '123456', 'manager@techstore.com', (SELECT id FROM roles WHERE role_name = 'manager')),
+('staff', '123456', 'staff@techstore.com', (SELECT id FROM roles WHERE role_name = 'staff'));
+
+-- 4. Cập nhật chính xác Role, Mật khẩu, và thông tin nhân viên cho các tài khoản demo
+UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'admin'), password = '123456', full_name = 'Quản Trị Viên Hệ Thống', phone = '0901111111', hometown = 'TP.HCM', store_id = 1 WHERE username = 'admin';
+UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'store_owner'), password = '123456', full_name = 'Chủ Cửa Hàng Demo', phone = '0902222222', hometown = 'Hà Nội', store_id = 1 WHERE username = 'owner';
+UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'manager'), password = '123456', full_name = 'Quản Lý Chi Nhánh', phone = '0903333333', hometown = 'Đà Nẵng', store_id = 2 WHERE username = 'manager';
+UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'staff'), password = '123456', full_name = 'Nhân Viên Bán Hàng', phone = '0904444444', hometown = 'Cần Thơ', store_id = 1 WHERE username = 'staff';
+UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'user'), password = '123456', full_name = 'Nguyễn Văn Khách Hàng', phone = '0905555555' WHERE username = 'user';
+
+
+
+-- =========================
+-- 5. DANH MỤC VÀ SẢN PHẨM
+-- =========================
+INSERT INTO `categories` (`id`, `category_name`, `description`) VALUES 
+(1, 'Laptop', 'Máy tính xách tay văn phòng, gaming, đồ họa'),
+(2, 'Điện thoại', 'Điện thoại thông minh, smartphone mới nhất'),
+(3, 'PlayStation', 'Máy chơi game console và phụ kiện PS'),
+(4, 'Bàn phím cơ', 'Bàn phím cơ chơi game, văn phòng, custom'),
+(5, 'Chuột gaming', 'Chuột gaming không dây, có dây, độ nhạy cao'),
+(6, 'Màn hình', 'Màn hình máy tính chuyên game, đồ họa, văn phòng'),
+(7, 'Tai nghe', 'Tai nghe chụp tai, tai nghe bluetooth, tai nghe gaming'),
+(8, 'SSD', 'Ổ cứng lưu trữ SSD tốc độ cao SATA/NVMe');
+
 INSERT IGNORE INTO products (id, product_name, description, price, image_url, stock_quantity, category_id, store_id) VALUES
 (1, 'Laptop ASUS ROG Zephyrus G14 2024', 'AMD Ryzen 9 8945HS, RAM 16GB DDR5, SSD 1TB NVMe, RTX 4070, màn 14in 144Hz QHD+.', 14000000, 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600', 26, 1, 1),
 (2, 'MacBook Air M3 13 inch', 'Chip Apple M3, RAM 8GB Unified, SSD 256GB, màn Liquid Retina 13.6in, pin 18 giờ.', 5000000, 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600', 38, 1, 2),
@@ -55,6 +212,30 @@ INSERT IGNORE INTO products (id, product_name, description, price, image_url, st
 (54, 'Đèn kẹp màn hình Baseus i-Wok LED', 'Chống chói, điều chỉnh 3 chế độ màu 3000K-6500K, điều khiển cảm ứng.', 9000000, 'https://images.unsplash.com/photo-1563770557593-5c5359f26824?w=600', 47, 9, 2),
 (55, 'Lót chuột Razer Strider XXL Hybrid', 'Kích thước 900x400mm, bề mặt lai hard/soft, chống thấm nước, viền may chắc.', 20000000, 'https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=600', 44, 9, 1);
 
+
+
+-- =========================
+-- 6. KHÁCH HÀNG VÀ ĐƠN HÀNG
+-- =========================
+INSERT INTO `customers` (`id`, `user_id`, `full_name`, `phone`, `address`) VALUES 
+(1, 1, 'Hệ thống Quản trị viên', '0900000001', 'Văn phòng Tổng công ty Tech Store, TP. HCM'),
+(2, 2, 'Nguyễn Văn Khách Hàng', '0912345678', '789 Đường 3/2, Quận 10, TP. HCM');
+
+INSERT INTO `orders` (`id`, `customer_id`, `total_amount`, `status`, `shipping_address`) VALUES 
+(1, 2, 33770000.00, 'Completed', '789 Đường 3/2, Quận 10, TP. HCM'), -- Đơn hàng hoàn thành
+(2, 2, 13490000.00, 'Pending', '789 Đường 3/2, Quận 10, TP. HCM');
+
+INSERT INTO `order_details` (`order_id`, `product_id`, `quantity`, `price`) VALUES 
+(1, 8, 1, 3190000.00),  -- Mua 1 chuột Logitech
+(1, 11, 1, 2590000.00), -- Mua 1 SSD Samsung
+(1, 2, 1, 27990000.00), -- Mua 1 Macbook Air M3
+(2, 5, 1, 13490000.00);
+
+-- =========================
+-- 7. FIX FONT TIẾNG VIỆT VÀ DỌN DỮ LIỆU
+-- =========================
+-- 5. Sửa lỗi font tiếng Việt cho khách hàng, cửa hàng bị móp méo ký tự
+UPDATE customers SET full_name = REPLACE(full_name, 'Nguyá»…n VÄƒn KhÃ¡nh HÃ ng', 'Nguyễn Văn Khánh Hàng');
 DELETE p1 FROM products p1
 INNER JOIN products p2 
 WHERE p1.product_name = p2.product_name AND p1.id < p2.id;
@@ -64,3 +245,4 @@ WHERE LENGTH(product_name) < 5
    OR image_url IS NULL 
    OR image_url = ''
    OR image_url NOT LIKE 'http%';
+

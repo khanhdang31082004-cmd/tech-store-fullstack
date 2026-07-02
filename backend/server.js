@@ -1235,7 +1235,17 @@ app.delete('/api/admin/users/:id', authenticateToken, isAdmin, async (req, res) 
 // 6.6 API QUẢN LÝ CỬA HÀNG CHI NHÁNH (STORE MANAGEMENT API)
 // ----------------------------------------------------
 
-// Lấy danh sách toàn bộ cửa hàng chi nhánh
+// API Công khai: Lấy danh sách cửa hàng cho khách hàng xem
+app.get('/api/stores', async (req, res) => {
+  try {
+    const [stores] = await pool.query('SELECT * FROM stores ORDER BY id ASC');
+    return res.status(200).json(stores);
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi tải danh sách cửa hàng.', error: error.message });
+  }
+});
+
+// Lấy danh sách toàn bộ cửa hàng chi nhánh (cho Admin)
 app.get('/api/admin/stores', authenticateToken, isStaff, async (req, res) => {
   try {
     const [stores] = await pool.query('SELECT * FROM stores ORDER BY id DESC');
