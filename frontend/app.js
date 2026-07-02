@@ -688,4 +688,28 @@ document.addEventListener("DOMContentLoaded", () => {
     initBannerSlider();
   }
   updateNavbar();
+
+  // Đóng các modal khi click ra ngoài hoặc nhấn ESC
+  const modals = ["product-detail-modal", "product-modal", "employee-modal", "store-modal"];
+  modals.forEach(id => {
+    const modal = document.getElementById(id);
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+        }
+      });
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      modals.forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal && !modal.classList.contains('hidden')) {
+          modal.classList.add('hidden');
+        }
+      });
+    }
+  });
 });

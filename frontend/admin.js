@@ -11,9 +11,13 @@ const adminUser = JSON.parse(localStorage.getItem("user") || "{}");
 const allowedRoles = ['admin', 'store_owner', 'manager', 'staff'];
 
 if (!adminToken || !adminUser || !allowedRoles.includes(adminUser.role_name)) {
-  showToast("Quyền truy cập bị từ chối. Khu vực dành riêng cho nhân sự.", "error");
+  showToast("Quyền truy cập bị từ chối.", "error");
   setTimeout(() => {
-    window.location.href = "index.html";
+    if (!adminToken) {
+      window.location.href = "auth.html";
+    } else {
+      window.location.href = "index.html";
+    }
   }, 1000);
 }
 
@@ -486,14 +490,17 @@ async function loadAdminEmployees() {
       table.innerHTML = employees.map(emp => `
         <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-b-0 text-slate-700 font-medium">
           <td class="px-6 py-4 font-bold text-slate-800">#NV-00${emp.id}</td>
+          <td class="px-6 py-4 font-bold text-slate-800">${emp.full_name || 'Chưa cập nhật'}</td>
           <td class="px-6 py-4 font-bold text-slate-800">${emp.username}</td>
           <td class="px-6 py-4 text-slate-650 font-semibold">${emp.email}</td>
+          <td class="px-6 py-4 font-bold text-slate-800">${emp.phone || 'N/A'}</td>
+          <td class="px-6 py-4 font-bold text-slate-800">${emp.hometown || 'N/A'}</td>
           <td class="px-6 py-4">
             <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-750 uppercase tracking-wider">
               ${emp.role_name === 'admin' ? 'Admin hệ thống' : emp.role_name === 'store_owner' ? 'Chủ cửa hàng' : emp.role_name === 'manager' ? 'Quản lý' : 'Nhân viên'}
             </span>
           </td>
-          <td class="px-6 py-4 font-bold text-slate-800">${emp.store_name || 'Tất cả chi nhánh'}</td>
+          <td class="px-6 py-4 font-bold text-slate-800">${emp.store_name || 'Tất cả'}</td>
           <td class="px-6 py-4 text-center">
             <span class="px-2 py-0.5 text-xs font-bold rounded-full ${emp.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
               ${emp.is_active ? 'Đang hoạt động' : 'Bị khóa'}
@@ -742,19 +749,19 @@ function applyRolePermissions() {
   const role = adminUser.role_name;
   if (role === 'staff') {
     document.getElementById("menu-categories")?.classList.add("hidden");
-    document.getElementById("menu-customers")?.classList.add("hidden");
+    document.getElementById("menu-products")?.classList.add("hidden");
     document.getElementById("menu-employees")?.classList.add("hidden");
     document.getElementById("menu-revenue")?.classList.add("hidden");
     document.getElementById("menu-settings")?.classList.add("hidden");
-    // Ẩn nút thêm sản phẩm
     const addProdBtn = document.querySelector('[onclick="openProductModal()"]');
     if (addProdBtn) addProdBtn.classList.add("hidden");
   } else if (role === 'manager') {
     document.getElementById("menu-employees")?.classList.add("hidden");
     document.getElementById("menu-settings")?.classList.add("hidden");
-    // Ẩn nút thêm chi nhánh mới
     const addStoreBtn = document.getElementById("btn-add-store");
     if (addStoreBtn) addStoreBtn.classList.add("hidden");
+  } else if (role === 'store_owner') {
+    // Owner sees almost everything
   }
   
   loadStoresIntoSelects();

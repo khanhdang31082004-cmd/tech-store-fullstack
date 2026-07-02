@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
   if (token && user) {
-    if (user.role_name === 'admin') {
+    if (['admin', 'store_owner', 'manager', 'staff'].includes(user.role_name)) {
       window.location.href = "admin.html";
     } else {
       window.location.href = "index.html";
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Điều hướng dựa theo vai trò (Role): Admin vào trang quản trị, User vào trang mua sắm
         setTimeout(() => {
-          if (data.user.role_name === 'admin') {
+          if (['admin', 'store_owner', 'manager', 'staff'].includes(data.user.role_name)) {
             window.location.href = "admin.html";
           } else {
             window.location.href = "index.html";
