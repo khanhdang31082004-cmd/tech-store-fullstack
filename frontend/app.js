@@ -350,7 +350,7 @@ function addToCart(productId, name, price, imageUrl) {
   // Đồng bộ giỏ hàng lên server-side nếu người dùng đã đăng nhập
   const token = localStorage.getItem("token");
   if (token) {
-    fetchWithAuth("/api/cart", {
+    fetchWithAuth("/cart", {
       method: "POST",
       body: JSON.stringify({ product_id: productId, quantity: 1 })
     }).catch(err => console.error("Lỗi đồng bộ giỏ hàng lên server:", err));
@@ -489,7 +489,7 @@ async function toggleStoreModal(state) {
     if (container) {
       container.innerHTML = `<div class="text-center py-4 text-slate-400">Đang tải thông tin...</div>`;
       try {
-        const response = await fetch(`${API_BASE_URL}/api/stores`);
+        const response = await fetch(`${API_BASE_URL}/stores`);
         const stores = await response.json();
         if (stores.length > 0) {
           container.innerHTML = stores.map(store => `
@@ -645,7 +645,7 @@ async function showProductDetail(productId) {
   `;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/products/${productId}`);
+    const response = await fetch(`${API_BASE_URL}/products/${productId}`);
     if (!response.ok) throw new Error("Không thể tải thông tin sản phẩm.");
     const prod = await response.json();
 
@@ -657,7 +657,7 @@ async function showProductDetail(productId) {
     // Tải sản phẩm liên quan (cùng danh mục)
     let relatedHtml = "";
     try {
-      const relResponse = await fetch(`${API_BASE_URL}/api/products?category_id=${prod.category_id}`);
+      const relResponse = await fetch(`${API_BASE_URL}/products?category_id=${prod.category_id}`);
       if (relResponse.ok) {
         const allInCat = await relResponse.json();
         const relatedList = allInCat.filter(item => item.id !== prod.id).slice(0, 3);

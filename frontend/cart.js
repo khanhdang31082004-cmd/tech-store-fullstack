@@ -177,7 +177,7 @@ async function prepareCheckout() {
 
   // Nạp sẵn thông tin cá nhân của User vào form để họ không phải nhập lại từ đầu
   try {
-    const response = await fetchWithAuth("/api/profile");
+    const response = await fetchWithAuth("/profile");
     if (response.ok) {
       const profile = await response.json();
       document.getElementById("checkout-fullname").value = profile.full_name || "";
@@ -236,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         // Gửi đơn đặt hàng lên API
-        const response = await fetchWithAuth("/api/orders", {
+        const response = await fetchWithAuth("/orders", {
           method: "POST",
           body: JSON.stringify({
             recipient_name: fullname,
@@ -259,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Làm sạch giỏ hàng trong localStorage và server-side sau khi đặt thành công
         localStorage.removeItem("cart");
         try {
-          await fetchWithAuth("/api/cart", { method: "DELETE" });
+          await fetchWithAuth("/cart", { method: "DELETE" });
         } catch (err) {
           console.error("Lỗi xóa giỏ hàng server:", err);
         }

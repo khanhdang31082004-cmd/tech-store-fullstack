@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         // Gửi tài khoản mật khẩu lên API Backend
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         // Gửi toàn bộ dữ liệu đăng ký lên API Backend
-        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

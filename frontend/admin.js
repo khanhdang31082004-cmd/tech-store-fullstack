@@ -24,6 +24,36 @@ if (!adminToken || !adminUser) {
   }
 }
 
+// 1.1 ÁP DỤNG PHÂN QUYỀN GIAO DIỆN THEO VAI TRÒ
+function applyRolePermissions() {
+  if (!adminUser) return;
+  const role = adminUser.role;
+  
+  // Hiển thị Username và Role
+  const nameEl = document.getElementById("sidebar-username");
+  const roleEl = document.getElementById("sidebar-role");
+  if (nameEl) nameEl.textContent = adminUser.username;
+  if (roleEl) roleEl.textContent = role;
+
+  // Ẩn menu theo vai trò
+  if (role === 'staff') {
+    // Staff: Chỉ xem Sản phẩm, Đơn hàng, Khách hàng
+    document.getElementById('menu-dashboard')?.classList.add('hidden');
+    document.getElementById('menu-categories')?.classList.add('hidden');
+    document.getElementById('menu-employees')?.classList.add('hidden');
+    document.getElementById('menu-revenue')?.classList.add('hidden');
+    document.getElementById('menu-settings')?.classList.add('hidden');
+  } else if (role === 'manager') {
+    // Manager: Xem Tổng quan, Sản phẩm, Danh mục, Đơn hàng, Khách hàng
+    document.getElementById('menu-employees')?.classList.add('hidden');
+    document.getElementById('menu-revenue')?.classList.add('hidden');
+    document.getElementById('menu-settings')?.classList.add('hidden');
+  } else if (role === 'owner') {
+    // Owner: Tương đương Admin nhưng có thể tùy biến sau (ẩn Settings hệ thống lõi)
+    document.getElementById('menu-employees')?.classList.add('hidden');
+  }
+}
+
 // Cập nhật đồng hồ thời gian trên header quản trị
 function updateClock() {
   const clockEl = document.getElementById("admin-time");
@@ -85,7 +115,7 @@ function switchAdminTab(tabId) {
 // =========================================================================
 async function loadAdminDashboard() {
   try {
-    const response = await fetchWithAuth("/api/admin/dashboard");
+    const response = await fetchWithAuth("/admin/dashboard");
     if (!response.ok) throw new Error("Không thể tải thông tin Dashboard.");
     const data = await response.json();
 
@@ -167,7 +197,7 @@ async function loadAdminProducts() {
   tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8">Đang tải danh sách thiết bị...</td></tr>`;
 
   try {
-    const response = await fetchWithAuth("/api/admin/products");
+    const response = await fetchWithAuth("/admin/products");
     if (!response.ok) throw new Error("Không thể tải danh sách sản phẩm.");
     const products = await response.json();
 
@@ -219,7 +249,7 @@ async function loadCategoriesIntoModal() {
   if (!select) return;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/categories`);
+    const response = await fetch(`${API_BASE_URL}/categories`);
     if (response.ok) {
       const categories = await response.json();
       let html = "";
@@ -261,7 +291,7 @@ async function editProduct(id) {
   title.textContent = "Cập nhật sản phẩm";
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/products/${id}`);
+    const response = await fetch(`${API_BASE_URL}/products/${id}`);
     if (!response.ok) throw new Error("Không thể tải sản phẩm.");
     
     const prod = await response.json();
@@ -288,7 +318,7 @@ async function deleteProduct(id) {
   if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi hệ thống?")) return;
 
   try {
-    const response = await fetchWithAuth(`/api/admin/products/${id}`, {
+    const response = await fetchWithAuth(`/admin/products/${id}`, {
       method: "DELETE"
     });
 
@@ -316,7 +346,7 @@ async function loadAdminOrders() {
   tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8">Đang tải danh sách đơn hàng...</td></tr>`;
 
   try {
-    const response = await fetchWithAuth("/api/admin/orders");
+    const response = await fetchWithAuth("/admin/orders");
     if (!response.ok) throw new Error("Không thể tải danh sách đơn hàng.");
     const orders = await response.json();
 
@@ -404,7 +434,7 @@ async function updateOrderStatus(orderId) {
   const newStatus = select.value;
 
   try {
-    const response = await fetchWithAuth(`/api/admin/orders/${orderId}`, {
+    const response = await fetchWithAuth(`/admin/orders/${orderId}`, {
       method: "PUT",
       body: JSON.stringify({ status: newStatus })
     });
@@ -429,7 +459,7 @@ async function loadAdminCategories() {
   if (!table) return;
   table.innerHTML = `<tr><td colspan="3" class="text-center py-8">Đang tải danh mục...</td></tr>`;
   try {
-    const res = await fetch(`${API_BASE_URL}/api/categories`);
+    const res = await fetch(`${API_BASE_URL}/categories`);
     if (res.ok) {
       const data = await res.json();
       table.innerHTML = data.map(cat => `
@@ -453,7 +483,7 @@ async function loadAdminCustomers() {
   if (!table) return;
   table.innerHTML = `<tr><td colspan="4" class="text-center py-8">Đang tải danh sách khách hàng...</td></tr>`;
   try {
-    const res = await fetchWithAuth("/api/admin/users");
+    const res = await fetchWithAuth("/admin/users");
     if (res.ok) {
       const users = await res.json();
       const customers = users.filter(u => u.role_id === 2);
@@ -486,7 +516,7 @@ async function loadAdminEmployees() {
   if (!table) return;
   table.innerHTML = `<tr><td colspan="7" class="text-center py-8">Đang tải thông tin nhân viên...</td></tr>`;
   try {
-    const res = await fetchWithAuth("/api/admin/users");
+    const res = await fetchWithAuth("/admin/users");
     if (res.ok) {
       const users = await res.json();
       const employees = users.filter(u => u.role_id !== 2); // Loại khách hàng ra
@@ -546,7 +576,7 @@ async function editEmployee(id) {
   document.getElementById("employee-password").removeAttribute("required");
   document.getElementById("employee-status-container").classList.remove("hidden");
   try {
-    const res = await fetchWithAuth("/api/admin/users");
+    const res = await fetchWithAuth("/admin/users");
     if (res.ok) {
       const users = await res.json();
       const emp = users.find(u => u.id === id);
@@ -567,7 +597,7 @@ async function editEmployee(id) {
 async function deleteEmployee(id) {
   if (!confirm("Bạn có chắc chắn muốn xóa tài khoản nhân viên này?")) return;
   try {
-    const res = await fetchWithAuth(`/api/admin/users/${id}`, { method: "DELETE" });
+    const res = await fetchWithAuth(`/admin/users/${id}`, { method: "DELETE" });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
     showToast("Đã xóa tài khoản nhân viên thành công!", "success");
@@ -589,7 +619,7 @@ async function loadAdminRevenue() {
   lowStockTable.innerHTML = `<tr><td colspan="3" class="text-center py-6">Đang tải...</td></tr>`;
 
   try {
-    const res = await fetchWithAuth("/api/admin/dashboard");
+    const res = await fetchWithAuth("/admin/dashboard");
     if (res.ok) {
       const data = await res.json();
 
@@ -642,7 +672,7 @@ async function loadAdminStores() {
   if (!table) return;
   table.innerHTML = `<tr><td colspan="6" class="text-center py-8">Đang tải...</td></tr>`;
   try {
-    const res = await fetchWithAuth("/api/admin/stores");
+    const res = await fetchWithAuth("/admin/stores");
     if (res.ok) {
       const stores = await res.json();
       
@@ -694,7 +724,7 @@ async function editStore(id) {
   document.getElementById("store-modal-title").textContent = "Cập nhật chi nhánh";
   document.getElementById("store-status-container").classList.remove("hidden");
   try {
-    const res = await fetchWithAuth("/api/admin/stores");
+    const res = await fetchWithAuth("/admin/stores");
     if (res.ok) {
       const stores = await res.json();
       const st = stores.find(s => s.id === id);
@@ -714,7 +744,7 @@ async function editStore(id) {
 async function deleteStore(id) {
   if (!confirm("Bạn có chắc chắn muốn xóa chi nhánh cửa hàng này?")) return;
   try {
-    const res = await fetchWithAuth(`/api/admin/stores/${id}`, { method: "DELETE" });
+    const res = await fetchWithAuth(`/admin/stores/${id}`, { method: "DELETE" });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
     showToast("Đã xóa chi nhánh thành công!", "success");
@@ -729,7 +759,7 @@ async function deleteStore(id) {
 // =========================================================================
 async function loadStoresIntoSelects() {
   try {
-    const response = await fetchWithAuth("/api/admin/stores");
+    const response = await fetchWithAuth("/admin/stores");
     if (response.ok) {
       const stores = await response.json();
       const modalStoreSelect = document.getElementById("modal-store");
@@ -805,11 +835,11 @@ document.addEventListener("DOMContentLoaded", () => {
   applyRolePermissions();
   loadCategoriesIntoModal(); // Tải danh mục vào form popup modal
   
+  let defaultTab = 'dashboard';
   if (adminUser && adminUser.role === 'staff') {
-    switchAdminTab("orders");
-  } else {
-    switchAdminTab("dashboard");
+    defaultTab = 'orders'; // Staff vào thẳng đơn hàng
   }
+  switchAdminTab(defaultTab);
 
   // Đăng ký sự kiện submit Form Thêm / Sửa sản phẩm
   const formProduct = document.getElementById("form-product");
@@ -842,11 +872,11 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       try {
-        let url = "/api/admin/products";
+        let url = "/admin/products";
         let method = "POST";
 
         if (productId) {
-          url = `/api/admin/products/${productId}`;
+          url = `/admin/products/${productId}`;
           method = "PUT";
         }
 
@@ -895,7 +925,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const url = empId ? `/api/admin/users/${empId}` : "/api/admin/users";
+        const url = empId ? `/admin/users/${empId}` : "/admin/users";
         const method = empId ? "PUT" : "POST";
         const res = await fetchWithAuth(url, {
           method: method,
@@ -938,7 +968,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const url = storeId ? `/api/admin/stores/${storeId}` : "/api/admin/stores";
+        const url = storeId ? `/admin/stores/${storeId}` : "/admin/stores";
         const method = storeId ? "PUT" : "POST";
         const res = await fetchWithAuth(url, {
           method: method,

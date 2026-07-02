@@ -19,7 +19,7 @@ async function loadProfile() {
   if (!form) return;
 
   try {
-    const response = await fetchWithAuth("/api/profile"); // Hàm fetch tự đính kèm JWT Token
+    const response = await fetchWithAuth("/profile"); // Hàm fetch tự đính kèm JWT Token
     if (!response.ok) throw new Error("Không thể tải thông tin cá nhân.");
 
     const data = await response.json();
@@ -52,7 +52,7 @@ async function loadOrders() {
   if (!container) return;
 
   try {
-    const response = await fetchWithAuth("/api/orders");
+    const response = await fetchWithAuth("/orders");
     if (!response.ok) throw new Error("Không thể tải lịch sử đơn hàng.");
 
     const orders = await response.json();
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         // Gửi yêu cầu PUT cập nhật hồ sơ cá nhân lên API
-        const response = await fetchWithAuth("/api/profile", {
+        const response = await fetchWithAuth("/profile", {
           method: "PUT",
           body: JSON.stringify({
             full_name: fullname,
