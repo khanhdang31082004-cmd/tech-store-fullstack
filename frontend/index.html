@@ -78,7 +78,7 @@
           <!-- Button hệ thống chi nhánh -->
           <button onclick="toggleStoreModal(true)" class="flex flex-col items-center justify-center gap-0.5 text-xs text-slate-300 hover:text-white transition-colors">
             <svg class="w-6 h-6 text-cyber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-            <span class="font-bold">Hệ thống Cửa hàng</span>
+            <span id="current-store-label" class="font-bold">Hệ thống Cửa hàng</span>
           </button>
 
           <!-- Icon giỏ hàng với Badge số lượng -->
@@ -248,13 +248,13 @@
         </button>
       </div>
       <div class="p-4 space-y-3 max-h-64 overflow-y-auto">
-        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg hover:border-cyan-400 transition-colors">
+        <div onclick="selectStore('Tech Store Q1')" class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg hover:border-cyan-400 cursor-pointer transition-colors">
           <h4 class="font-bold text-slate-800 text-sm">Tech Store Q1</h4>
           <p class="text-xs text-slate-600 mt-1">123 Nguyễn Huệ, Quận 1, TP. HCM</p>
           <p class="text-xs text-slate-600">ĐT: 028 1234 567</p>
           <span class="inline-block mt-2 px-2 py-0.5 text-[10px] bg-emerald-100 text-emerald-800 rounded font-bold uppercase">Đang hoạt động</span>
         </div>
-        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg hover:border-cyan-400 transition-colors">
+        <div onclick="selectStore('Tech Store Cầu Giấy')" class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg hover:border-cyan-400 cursor-pointer transition-colors">
           <h4 class="font-bold text-slate-800 text-sm">Tech Store Cầu Giấy</h4>
           <p class="text-xs text-slate-600 mt-1">456 Cầu Giấy, Quận Cầu Giấy, Hà Nội</p>
           <p class="text-xs text-slate-600">ĐT: 024 1234 567</p>

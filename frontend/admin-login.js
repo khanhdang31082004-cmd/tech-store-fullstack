@@ -3,9 +3,7 @@
 // FILE JAVASCRIPT: admin-login.js - Xử lý logic Đăng nhập Quản Trị Viên
 // =========================================================================
 
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.includes('192.168.')
-  ? 'http://localhost:5000'
-  : 'https://tech-store-fullstack-production.up.railway.app';
+const API_BASE_URL = 'https://tech-store-fullstack-production.up.railway.app';
 
 function showToast(message, type = 'success') {
   let container = document.getElementById('toast-container');

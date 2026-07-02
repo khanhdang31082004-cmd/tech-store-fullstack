@@ -3,9 +3,7 @@
 // FILE JAVASCRIPT: app.js - Các hàm dùng chung và logic Trang chủ index.html
 // =========================================================================
 // 1. CẤU HÌNH ĐƯỜNG DẪN BACKEND API CHUNG (Tự động thích ứng Local/Production)
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.includes('192.168.')
-  ? 'http://localhost:5000'
-  : 'https://tech-store-fullstack-production.up.railway.app';
+const API_BASE_URL = 'https://tech-store-fullstack-production.up.railway.app';
 
 // Đọc Token và thông tin User hiện tại từ bộ nhớ trình duyệt localStorage
 let token = localStorage.getItem("token");
@@ -159,6 +157,27 @@ function logout() {
 
 let currentCategoryId = null; // ID danh mục hiện tại đang được lọc
 let currentSearch = ""; // Từ khóa tìm kiếm hiện tại
+
+// Hàm bật/tắt Modal chọn chi nhánh
+window.toggleStoreModal = function(show) {
+  const modal = document.getElementById("store-modal");
+  if (!modal) return;
+  if (show) {
+    modal.classList.remove("hidden");
+  } else {
+    modal.classList.add("hidden");
+  }
+}
+
+// Hàm chọn chi nhánh
+window.selectStore = function(storeName) {
+  const label = document.getElementById("current-store-label");
+  if (label) {
+    label.textContent = "Chi nhánh: " + storeName;
+  }
+  showToast("Đã chọn: " + storeName);
+  toggleStoreModal(false);
+}
 
 // Gọi API lấy danh mục sản phẩm và nạp vào thanh lọc Sidebar
 async function loadCategories() {
