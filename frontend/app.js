@@ -185,7 +185,7 @@ async function loadCategories() {
       html += `
         <button onclick="filterCategory(${cat.id}, '${cat.category_name}')" 
                 id="cat-btn-${cat.id}"
-                class="category-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer">
+                class="category-btn text-left px-3.5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer" style="font-size: 16px;">
           <span>${cat.category_name}</span>
           <span class="w-1.5 h-1.5 rounded-full bg-slate-350"></span>
         </button>
@@ -210,7 +210,8 @@ function filterCategory(catId, catName = "Tất cả sản phẩm") {
 
   const activeBtn = document.getElementById(catId ? `cat-btn-${catId}` : "cat-btn-all");
   if (activeBtn) {
-    activeBtn.className = "text-left px-3.5 py-2.5 rounded-xl text-xs font-black bg-sky-50 text-sky-700 hover:bg-sky-100 transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer";
+    activeBtn.className = "text-left px-3.5 py-2.5 rounded-xl font-black bg-sky-50 text-sky-700 hover:bg-sky-100 transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer";
+    activeBtn.style.fontSize = "16px";
   }
 
   document.getElementById("section-title").textContent = catName;
@@ -260,33 +261,33 @@ async function loadProducts() {
         : `<button onclick="addToCart(${prod.id}, '${prod.product_name.replace(/'/g, "\\'")}', ${prod.price}, '${prod.image_url}')" class="flex-grow py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs transition-all hover-scale shadow border-0 cursor-pointer">Thêm vào giỏ</button>`;
 
       html += `
-        <div class="product-card bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-sky-200">
+        <div class="product-card bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col transition-all duration-300">
           <!-- Ảnh + tag danh mục + tooltip slide-up khi hover -->
             <div onclick="showProductDetail(${prod.id})" class="relative h-44 w-full bg-slate-100 rounded-xl overflow-hidden mb-3 cursor-pointer flex-shrink-0">
-              <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" alt="${prod.product_name}" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+              <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500';" alt="${prod.product_name}" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
               ${isOutOfStock ? `<div class="absolute inset-0 bg-slate-900/50 flex items-center justify-center"><span class="bg-rose-600 text-white font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">Hết hàng</span></div>` : ''}
               <span class="absolute top-2 left-2 bg-slate-900/75 text-sky-400 font-bold text-[9px] px-2 py-0.5 rounded tracking-wide uppercase backdrop-blur-sm">${prod.category_name}</span>
             </div>
 
           <!-- Nội dung card: flex-1 đảm bảo các card bằng chiều cao nhau -->
           <div class="flex flex-col flex-1">
-            <h3 onclick="showProductDetail(${prod.id})" class="font-extrabold text-slate-800 leading-snug line-clamp-2 cursor-pointer hover:text-sky-600 transition-colors" style="font-size:17px;min-height:2.8rem">${prod.product_name}</h3>
+            <h3 onclick="showProductDetail(${prod.id})" class="font-bold text-slate-800 leading-snug line-clamp-2 cursor-pointer hover:text-sky-600 transition-colors" style="font-size: 20px; font-weight: 700; min-height:3rem">${prod.product_name}</h3>
 
             <div class="flex items-center gap-1 mt-1.5">
               <span class="text-amber-400" style="font-size:13px">★★★★★</span>
-              <span class="text-slate-400 font-semibold" style="font-size:11px">(4.8)</span>
+              <span class="text-slate-400 font-semibold" style="font-size:12px">(4.8)</span>
             </div>
 
-            <p class="text-slate-500 line-clamp-2 mt-1.5 leading-relaxed" style="font-size:13px;min-height:2.4rem">${prod.description || 'Sản phẩm công nghệ chính hãng.'}</p>
+            <p class="text-slate-500 line-clamp-2 mt-1.5 leading-relaxed" style="font-size:16px; min-height:3rem">${prod.description || 'Sản phẩm công nghệ chính hãng.'}</p>
 
             <!-- Giá + nút: luôn ở dưới cùng nhờ mt-auto -->
             <div class="mt-auto border-t border-slate-100 pt-2.5">
               <div class="flex items-end justify-between mb-2">
                 <div>
-                  <span class="text-slate-400 block font-medium leading-none mb-0.5" style="font-size:10px">Giá bán:</span>
-                  <span class="font-black text-sky-600 leading-none" style="font-size:19px">${formatCurrency(prod.price)}</span>
+                  <span class="text-slate-400 block font-medium leading-none mb-0.5" style="font-size:12px">Giá bán:</span>
+                  <span class="font-black text-sky-600 leading-none" style="font-size: 22px; font-weight: 800;">${formatCurrency(prod.price)}</span>
                 </div>
-                <span class="text-slate-400 font-medium" style="font-size:10px">Kho: <strong class="text-slate-600">${prod.stock_quantity}</strong></span>
+                <span class="text-slate-400 font-medium" style="font-size:12px">Kho: <strong class="text-slate-600">${prod.stock_quantity}</strong></span>
               </div>
               <div class="flex gap-2">
                 ${buttonHtml}
@@ -416,7 +417,7 @@ function renderMiniCart() {
     html += `
       <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
         <div class="flex items-center gap-2 max-w-[180px]">
-          <img src="${item.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" alt="${item.product_name}" class="w-10 h-10 object-cover rounded border border-slate-200">
+          <img src="${item.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500';" alt="${item.product_name}" class="w-10 h-10 object-cover rounded border border-slate-200">
           <div>
             <h4 class="text-xs font-bold text-slate-800 truncate">${item.product_name}</h4>
             <span class="text-[10px] text-slate-400">SL: ${item.quantity} x ${formatCurrency(item.price)}</span>
@@ -618,7 +619,7 @@ async function showProductDetail(productId) {
               <div class="grid grid-cols-3 gap-3">
                 ${relatedList.map(rp => `
                   <div onclick="showProductDetail(${rp.id})" class="bg-slate-50 p-2 rounded-xl border border-slate-100 cursor-pointer hover:border-sky-500 transition-colors flex flex-col justify-between h-36">
-                    <img src="${rp.image_url}" class="h-16 w-full object-cover rounded-lg mb-1.5">
+                    <img src="${rp.image_url}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500';" class="h-16 w-full object-cover rounded-lg mb-1.5">
                     <h5 class="font-extrabold text-slate-750 text-[10px] line-clamp-1 leading-snug">${rp.product_name}</h5>
                     <span class="text-[10px] font-black text-sky-600 mt-1">${formatCurrency(rp.price)}</span>
                   </div>
@@ -634,7 +635,7 @@ async function showProductDetail(productId) {
 
     content.innerHTML = `
       <div class="h-64 md:h-full w-full bg-slate-100 rounded-xl overflow-hidden shadow-inner">
-        <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" alt="${prod.product_name}" class="w-full h-full object-cover">
+        <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500';" alt="${prod.product_name}" class="w-full h-full object-cover">
       </div>
       <div class="flex flex-col justify-between">
         <div>

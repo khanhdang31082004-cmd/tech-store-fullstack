@@ -273,7 +273,7 @@ WHERE id = 10;
 UPDATE products SET
   product_name = 'Tai nghe Razer BlackShark V2 Pro',
   description  = 'HyperSpeed 2.4GHz, màng loa TriForce Titanium 50mm, mic cardioid siêu chỉ hướng.',
-  image_url    = 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600'
+  image_url    = 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600'
 WHERE id = 30;
 
 UPDATE products SET
@@ -306,31 +306,31 @@ WHERE id = 48;
 UPDATE products SET
   product_name = 'SSD Samsung 990 Pro 1TB NVMe M.2',
   description  = 'Đọc 7450 MB/s, ghi 6900 MB/s, PCIe 4.0 x4 NVMe 2.0, Dynamic Thermal Guard.',
-  image_url    = 'https://images.unsplash.com/photo-1591405351990-4726e331f141?w=600'
+  image_url    = 'https://images.unsplash.com/photo-1597872200919-281df04a91d1?w=600'
 WHERE id = 11;
 
 UPDATE products SET
   product_name = 'SSD Kingston NV2 1TB PCIe 4.0 NVMe',
   description  = 'Đọc 3500 MB/s, ghi 2100 MB/s, M.2 2280, nâng cấp laptop và PC phổ thông.',
-  image_url    = 'https://images.unsplash.com/photo-1601524909162-be87252be298?w=600'
+  image_url    = 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=600'
 WHERE id = 33;
 
 UPDATE products SET
   product_name = 'SSD WD Black SN850X 2TB PCIe Gen4',
   description  = 'Đọc 7300 MB/s, ghi 6600 MB/s, tương thích PS5 và PC, Gaming Mode tự tối ưu.',
-  image_url    = 'https://images.unsplash.com/photo-1597872200919-281df04a91d1?w=600'
+  image_url    = 'https://images.unsplash.com/photo-1628557044797-f21a177c37ec?w=600'
 WHERE id = 34;
 
 UPDATE products SET
   product_name = 'SSD Crucial P3 Plus 1TB PCIe Gen4',
   description  = 'Đọc 5000 MB/s, ghi 3600 MB/s, PCIe Gen4 NVMe, tiêu thụ điện thấp.',
-  image_url    = 'https://images.unsplash.com/photo-1562976540-1502c2145186?w=600'
+  image_url    = 'https://images.unsplash.com/photo-1526406915894-7bcd65f60845?w=600'
 WHERE id = 49;
 
 UPDATE products SET
   product_name = 'SSD MSI Spatium M480 PRO 2TB',
   description  = 'Đọc 7400 MB/s, ghi 7000 MB/s, PCIe Gen4 x4, M.2 2280, tản nhiệt graphene pad.',
-  image_url    = 'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?w=600'
+  image_url    = 'https://images.unsplash.com/photo-1625842268584-8f3296236761?w=600'
 WHERE id = 50;
 
 -- =========================================================================
