@@ -60,11 +60,16 @@ function applyRolePermissions() {
 }
 
 // Hàm đăng xuất riêng cho Admin
-function adminLogout() {
+function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   localStorage.removeItem("role");
   window.location.href = "admin-login.html";
+}
+
+// Chuyển hướng sang trang khách
+function viewStore() {
+  window.location.href = "index.html";
 }
 
 // Cập nhật đồng hồ thời gian trên header quản trị
