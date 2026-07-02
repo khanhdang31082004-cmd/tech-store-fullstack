@@ -841,6 +841,30 @@ app.put('/api/admin/orders/:id', authenticateToken, isStaff, async (req, res) =>
   }
 });
 
+// Admin/Owner xóa đơn hàng
+app.delete('/api/admin/orders/:id', authenticateToken, isStaff, async (req, res) => {
+  const orderId = req.params.id;
+  
+  if (req.user.role_name !== 'admin' && req.user.role_name !== 'store_owner') {
+    return res.status(403).json({ success: false, message: 'Không có quyền xóa đơn hàng' });
+  }
+
+  try {
+    const [check] = await pool.query('SELECT id FROM orders WHERE id = ?', [orderId]);
+    if (check.length === 0) {
+      return res.status(404).json({ success: false, message: 'Đơn hàng không tồn tại' });
+    }
+
+    // Yêu cầu: Xóa order_details trước, sau đó xóa orders (mặc dù csdl có ON DELETE CASCADE)
+    await pool.query('DELETE FROM order_details WHERE order_id = ?', [orderId]);
+    await pool.query('DELETE FROM orders WHERE id = ?', [orderId]);
+
+    return res.status(200).json({ success: true, message: 'Xóa đơn hàng thành công' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Không thể xóa đơn hàng' });
+  }
+});
+
 // Admin - API Lấy dữ liệu thống kê Dashboard (Doanh thu, Top bán chạy, Đơn đặt mới)
 app.get('/api/admin/dashboard', authenticateToken, isStaff, async (req, res) => {
   try {

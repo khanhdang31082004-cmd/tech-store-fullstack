@@ -399,6 +399,11 @@ async function loadAdminOrders() {
       `;
 
       const displayName = order.recipient_name || order.customer_name || order.full_name || order.username || 'Khách vãng lai';
+      const canDelete = adminUser && (adminUser.role === 'admin' || adminUser.role === 'owner');
+      const deleteBtnHtml = canDelete 
+        ? `<button onclick="deleteOrder(${order.id})" class="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded border border-rose-200 transition-all border-0 cursor-pointer ml-1">Xóa</button>` 
+        : `<button disabled title="Bạn không có quyền xóa đơn hàng" class="px-3 py-1 bg-slate-100 text-slate-400 font-bold text-xs rounded border border-slate-200 cursor-not-allowed ml-1">Xóa</button>`;
+
       html += `
         <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-b-0 text-slate-700 font-medium">
           <td class="px-6 py-4 font-bold text-slate-800">
@@ -417,10 +422,11 @@ async function loadAdminOrders() {
               ${optionsHtml}
             </select>
           </td>
-          <td class="px-6 py-4 text-right">
+          <td class="px-6 py-4 text-right whitespace-nowrap">
             <button onclick="updateOrderStatus(${order.id})" class="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold text-xs rounded border border-emerald-200 transition-all border-0 cursor-pointer">
               Cập nhật
             </button>
+            ${deleteBtnHtml}
           </td>
         </tr>
       `;
@@ -453,13 +459,34 @@ async function updateOrderStatus(orderId) {
     loadAdminOrders(); // Nạp lại bảng đơn hàng
 
   } catch (error) {
-    console.error("Lỗi cập nhật trạng thái đơn:", error);
+    console.error("Lỗi cập nhật trạng thái đơn hàng:", error);
     showToast(error.message, "error");
   }
 }
 
+// Xóa đơn hàng
+async function deleteOrder(orderId) {
+  if (!confirm("Bạn có chắc muốn xóa đơn hàng này không?")) return;
+
+  try {
+    const response = await fetchWithAuth(`/admin/orders/${orderId}`, {
+      method: "DELETE"
+    });
+    const data = await response.json();
+    if (response.ok) {
+      showToast(data.message || "Xóa đơn hàng thành công", "success");
+      loadAdminOrders();
+      if (typeof loadAdminDashboard === 'function') loadAdminDashboard();
+    } else {
+      showToast(data.message || "Không thể xóa đơn hàng", "error");
+    }
+  } catch (error) {
+    showToast("Đã xảy ra lỗi khi xóa đơn hàng", "error");
+  }
+}
+
 // =========================================================================
-// TAB 4: QUẢN LÝ DANH MỤC (CATEGORY LIST)
+// TAB 4: QUẢN LÝ DANH MỤC (CATEGORIES)Y LIST)
 // =========================================================================
 async function loadAdminCategories() {
   const table = document.getElementById("admin-categories-table");
