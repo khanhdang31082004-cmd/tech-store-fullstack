@@ -5,20 +5,25 @@
 
 // 1. KIỂM TRA QUYỀN TRUY CẬP (Bảo vệ bảo mật trang quản trị)
 const adminToken = localStorage.getItem("token");
-const adminUser = JSON.parse(localStorage.getItem("user") || "{}");
+let adminUser = null;
+try {
+  adminUser = JSON.parse(localStorage.getItem("user"));
+} catch (e) {}
 
-// Phân quyền: các vai trò được vào trang quản trị gồm: admin, store_owner, manager, staff
-const allowedRoles = ['admin', 'store_owner', 'manager', 'staff'];
-
-if (!adminToken || !adminUser || !allowedRoles.includes(adminUser.role_name)) {
-  showToast("Quyền truy cập bị từ chối.", "error");
-  setTimeout(() => {
-    if (!adminToken) {
-      window.location.href = "auth.html";
-    } else {
+if (!adminToken || !adminUser) {
+  window.location.href = "auth.html";
+} else {
+  // Phân quyền: các vai trò được vào trang quản trị gồm: admin, owner, manager, staff
+  const allowedRoles = ['admin', 'owner', 'manager', 'staff'];
+  
+  if (adminUser.role === 'user') {
+    showToast("Bạn không có quyền truy cập trang quản trị.", "error");
+    setTimeout(() => {
       window.location.href = "index.html";
-    }
-  }, 1000);
+    }, 1000);
+  } else if (!allowedRoles.includes(adminUser.role)) {
+    window.location.href = "auth.html";
+  }
 }
 
 // Cập nhật đồng hồ thời gian trên header quản trị
@@ -173,7 +178,7 @@ async function loadAdminProducts() {
       return;
     }
 
-    const canEdit = ['admin', 'store_owner', 'manager'].includes(adminUser.role_name);
+    const canEdit = ['admin', 'owner', 'manager'].includes(adminUser.role);
 
     let html = "";
     products.forEach(prod => {
@@ -643,7 +648,7 @@ async function loadAdminStores() {
     if (res.ok) {
       const stores = await res.json();
       
-      const canEditStores = adminUser.role_name === 'admin';
+      const canEditStores = adminUser.role === 'admin';
 
       table.innerHTML = stores.map(st => `
         <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-b-0 text-slate-700 font-medium">
@@ -748,7 +753,7 @@ async function loadStoresIntoSelects() {
 function getVietnameseRole(role) {
   switch(role) {
     case 'admin': return 'Admin hệ thống';
-    case 'store_owner': return 'Chủ cửa hàng';
+    case 'owner': return 'Chủ cửa hàng';
     case 'manager': return 'Quản lý chi nhánh';
     case 'staff': return 'Nhân viên bán hàng';
     case 'user': return 'Khách hàng';
@@ -758,13 +763,18 @@ function getVietnameseRole(role) {
 
 // Áp dụng ẩn hiện menu dựa theo phân quyền nhân viên đăng nhập
 function applyRolePermissions() {
-  const role = adminUser.role_name;
+  if (!adminUser) return;
+  const role = adminUser.role;
 
   // Hiển thị thông tin sidebar
   const usernameEl = document.getElementById("sidebar-username");
   const roleEl = document.getElementById("sidebar-role");
-  if (usernameEl) usernameEl.textContent = adminUser.full_name || adminUser.username || "Người dùng";
-  if (roleEl) roleEl.textContent = getVietnameseRole(role);
+  if (usernameEl) {
+    usernameEl.textContent = `Xin chào, ${adminUser.full_name || adminUser.username || "Người dùng"}`;
+  }
+  if (roleEl) {
+    roleEl.textContent = `Vai trò: ${getVietnameseRole(role)}`;
+  }
 
   if (role === 'staff') {
     document.getElementById("menu-dashboard")?.classList.add("hidden");
@@ -782,7 +792,7 @@ function applyRolePermissions() {
     document.getElementById("menu-settings")?.classList.add("hidden");
     const addStoreBtn = document.getElementById("btn-add-store");
     if (addStoreBtn) addStoreBtn.classList.add("hidden");
-  } else if (role === 'store_owner') {
+  } else if (role === 'owner') {
     document.getElementById("menu-categories")?.classList.add("hidden");
     document.getElementById("menu-customers")?.classList.add("hidden");
   }
@@ -797,7 +807,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyRolePermissions();
   loadCategoriesIntoModal(); // Tải danh mục vào form popup modal
   
-  if (adminUser && adminUser.role_name === 'staff') {
+  if (adminUser && adminUser.role === 'staff') {
     switchAdminTab("orders");
   } else {
     switchAdminTab("dashboard");

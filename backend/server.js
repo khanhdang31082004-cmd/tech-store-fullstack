@@ -248,7 +248,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Kiểm tra mật khẩu theo 3 cách linh hoạt:
     // a) Đặc cách đăng nhập nhanh cho tài khoản demo với mật khẩu 123456
-    const isDemoLogin = (username === 'admin' || username === 'user') && password === '123456';
+    const isDemoLogin = (['admin', 'user', 'owner', 'manager', 'staff'].includes(username)) && password === '123456';
     
     // b) So sánh trực tiếp mật khẩu plain text trong DB
     const isPlainMatch = (password === user.password);
@@ -269,14 +269,18 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ message: 'Tên đăng nhập hoặc mật khẩu không đúng.' });
     }
 
+    // Chuẩn hóa role name
+    let normalizedRole = user.role_name;
+    if (normalizedRole === 'store_owner') normalizedRole = 'owner';
+
     // Gắn thông tin cần thiết vào JWT Payload
     const tokenPayload = {
       id: user.id,
       username: user.username,
       full_name: user.full_name,
       email: user.email,
-      role_id: user.role_id,
-      role_name: user.role_name,
+      role: normalizedRole,
+      role_name: normalizedRole, // Trả về giống nhau cho frontend dễ dùng
       store_id: user.store_id
     };
 
@@ -295,9 +299,8 @@ app.post('/api/auth/login', async (req, res) => {
         username: user.username,
         full_name: user.full_name,
         email: user.email,
-        role_id: user.role_id,
-        role_name: user.role_name,
-        store_id: user.store_id
+        role: normalizedRole,
+        role_name: normalizedRole
       }
     });
   } catch (error) {

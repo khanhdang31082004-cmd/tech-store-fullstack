@@ -161,7 +161,8 @@ function updateNavbar() {
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
-  window.location.href = "index.html";
+  localStorage.removeItem("role");
+  window.location.href = "auth.html";
 }
 
 // =========================================================================

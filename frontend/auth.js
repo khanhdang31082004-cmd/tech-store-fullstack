@@ -39,9 +39,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Nếu người dùng đã đăng nhập thành công từ trước -> Tự động chuyển hướng về trang chủ/admin
   const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+  const userStr = localStorage.getItem("user");
+  let user = null;
+  try {
+    user = JSON.parse(userStr);
+  } catch (e) {}
+
   if (token && user) {
-    if (['admin', 'store_owner', 'manager', 'staff'].includes(user.role_name)) {
+    if (['admin', 'owner', 'manager', 'staff'].includes(user.role)) {
       window.location.href = "admin.html";
     } else {
       window.location.href = "index.html";
@@ -81,20 +86,24 @@ document.addEventListener("DOMContentLoaded", () => {
           throw new Error(data.message || "Đăng nhập thất bại.");
         }
 
+        // Xóa sạch các key rác cũ nếu có
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("username");
+        localStorage.removeItem("full_name");
+
         // ĐĂNG NHẬP THÀNH CÔNG: Lưu token JWT và thông tin user vào localStorage của trình duyệt
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
-        localStorage.setItem("role", data.user.role_name);
-        localStorage.setItem("username", data.user.username);
-        if (data.user.full_name) {
-          localStorage.setItem("full_name", data.user.full_name);
-        }
+        localStorage.setItem("role", data.user.role);
 
         showToast(data.message || "Đăng nhập thành công!", "success");
 
         // Điều hướng dựa theo vai trò (Role): Admin vào trang quản trị, User vào trang mua sắm
         setTimeout(() => {
-          if (['admin', 'store_owner', 'manager', 'staff'].includes(data.user.role_name)) {
+          if (['admin', 'owner', 'manager', 'staff'].includes(data.user.role)) {
             window.location.href = "admin.html";
           } else {
             window.location.href = "index.html";
