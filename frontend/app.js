@@ -3,7 +3,7 @@
 // FILE JAVASCRIPT: app.js - Các hàm dùng chung và logic Trang chủ index.html
 // =========================================================================
 // 1. CẤU HÌNH ĐƯỜNG DẪN BACKEND API CHUNG (Tự động thích ứng Local/Production)
-const API_BASE_URL = 'https://tech-store-fullstack-production.up.railway.app';
+const API_BASE_URL = 'https://tech-store-fullstack-production.up.railway.app/api';
 
 // Đọc Token và thông tin User hiện tại từ bộ nhớ trình duyệt localStorage
 let token = localStorage.getItem("token");
@@ -185,7 +185,7 @@ async function loadCategories() {
   if (!listContainer) return;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/categories`);
+    const response = await fetch(`${API_BASE_URL}/categories`);
     if (!response.ok) throw new Error("Lỗi tải danh mục");
     const categories = await response.json();
 
@@ -242,7 +242,7 @@ async function loadProducts() {
   `;
 
   try {
-    let url = `${API_BASE_URL}/api/products?`;
+    let url = `${API_BASE_URL}/products?`;
     if (currentCategoryId) url += `category_id=${currentCategoryId}&`;
     if (currentSearch) url += `search=${encodeURIComponent(currentSearch)}&`;
 
