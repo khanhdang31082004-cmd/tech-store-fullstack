@@ -82,8 +82,9 @@ async function fetchWithAuth(endpoint, options = {}) {
     headers: headers
   });
 
-  // Nếu API báo token không hợp lệ hoặc hết hạn (401/403) -> Đăng xuất người dùng ngay
-  if (response.status === 401 || response.status === 403) {
+  // Nếu API báo token không hợp lệ hoặc hết hạn (401) -> Đăng xuất người dùng ngay
+  // Lưu ý: Không logout với lỗi 403 (Forbidden) vì đó chỉ là lỗi thiếu quyền truy cập
+  if (response.status === 401) {
     const data = await response.json();
     if (token) {
       showToast(data.message || "Phiên đăng nhập hết hạn.", "error");

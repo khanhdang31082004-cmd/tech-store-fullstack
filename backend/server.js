@@ -273,6 +273,7 @@ app.post('/api/auth/login', async (req, res) => {
     const tokenPayload = {
       id: user.id,
       username: user.username,
+      full_name: user.full_name,
       email: user.email,
       role_id: user.role_id,
       role_name: user.role_name,
@@ -292,6 +293,7 @@ app.post('/api/auth/login', async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
+        full_name: user.full_name,
         email: user.email,
         role_id: user.role_id,
         role_name: user.role_name,

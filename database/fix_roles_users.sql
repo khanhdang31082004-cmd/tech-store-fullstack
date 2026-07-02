@@ -45,14 +45,21 @@ UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'manager'), p
 UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'staff'), password = '123456', full_name = 'Nhân Viên Bán Hàng', phone = '0904444444', hometown = 'Cần Thơ', store_id = 1 WHERE username = 'staff';
 UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'user'), password = '123456', full_name = 'Nguyễn Văn Khách Hàng', phone = '0905555555' WHERE username = 'user';
 
--- 5. Sửa lỗi font tiếng Việt cho khách hàng và cửa hàng bị móp méo ký tự
+-- 5. Sửa lỗi font tiếng Việt cho khách hàng, cửa hàng bị móp méo ký tự
 UPDATE customers SET full_name = REPLACE(full_name, 'Nguyá»…n VÄƒn KhÃ¡nh HÃ ng', 'Nguyễn Văn Khánh Hàng');
 UPDATE customers SET full_name = REPLACE(full_name, 'Nguyá»…n', 'Nguyễn');
+UPDATE customers SET full_name = REPLACE(full_name, 'VÄƒn', 'Văn');
+UPDATE customers SET full_name = REPLACE(full_name, 'HÃ ng', 'Hàng');
+
 UPDATE customers SET address = REPLACE(address, 'Cáº§u Giáº¥y', 'Cầu Giấy');
+UPDATE customers SET address = REPLACE(address, 'Cáº§u', 'Cầu');
+UPDATE customers SET address = REPLACE(address, 'Giáº¥y', 'Giấy');
 UPDATE customers SET address = REPLACE(address, 'Quáºn', 'Quận');
 UPDATE customers SET address = REPLACE(address, 'HÃ Ná»™i', 'Hà Nội');
 
 UPDATE stores SET store_name = REPLACE(store_name, 'Cáº§u Giáº¥y', 'Cầu Giấy');
 UPDATE stores SET address = REPLACE(address, 'Cáº§u Giáº¥y', 'Cầu Giấy');
+UPDATE stores SET address = REPLACE(address, 'Cáº§u', 'Cầu');
+UPDATE stores SET address = REPLACE(address, 'Giáº¥y', 'Giấy');
 UPDATE stores SET address = REPLACE(address, 'Quáºn', 'Quận');
 UPDATE stores SET address = REPLACE(address, 'HÃ Ná»™i', 'Hà Nội');

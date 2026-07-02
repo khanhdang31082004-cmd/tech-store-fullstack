@@ -84,6 +84,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // ĐĂNG NHẬP THÀNH CÔNG: Lưu token JWT và thông tin user vào localStorage của trình duyệt
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("role", data.user.role_name);
+        localStorage.setItem("username", data.user.username);
+        if (data.user.full_name) {
+          localStorage.setItem("full_name", data.user.full_name);
+        }
 
         showToast(data.message || "Đăng nhập thành công!", "success");
 

@@ -744,24 +744,47 @@ async function loadStoresIntoSelects() {
   }
 }
 
+// Lấy tên vai trò tiếng Việt
+function getVietnameseRole(role) {
+  switch(role) {
+    case 'admin': return 'Admin hệ thống';
+    case 'store_owner': return 'Chủ cửa hàng';
+    case 'manager': return 'Quản lý chi nhánh';
+    case 'staff': return 'Nhân viên bán hàng';
+    case 'user': return 'Khách hàng';
+    default: return 'Không xác định';
+  }
+}
+
 // Áp dụng ẩn hiện menu dựa theo phân quyền nhân viên đăng nhập
 function applyRolePermissions() {
   const role = adminUser.role_name;
+
+  // Hiển thị thông tin sidebar
+  const usernameEl = document.getElementById("sidebar-username");
+  const roleEl = document.getElementById("sidebar-role");
+  if (usernameEl) usernameEl.textContent = adminUser.full_name || adminUser.username || "Người dùng";
+  if (roleEl) roleEl.textContent = getVietnameseRole(role);
+
   if (role === 'staff') {
-    document.getElementById("menu-categories")?.classList.add("hidden");
+    document.getElementById("menu-dashboard")?.classList.add("hidden");
     document.getElementById("menu-products")?.classList.add("hidden");
+    document.getElementById("menu-categories")?.classList.add("hidden");
     document.getElementById("menu-employees")?.classList.add("hidden");
     document.getElementById("menu-revenue")?.classList.add("hidden");
     document.getElementById("menu-settings")?.classList.add("hidden");
     const addProdBtn = document.querySelector('[onclick="openProductModal()"]');
     if (addProdBtn) addProdBtn.classList.add("hidden");
   } else if (role === 'manager') {
+    document.getElementById("menu-categories")?.classList.add("hidden");
     document.getElementById("menu-employees")?.classList.add("hidden");
+    document.getElementById("menu-revenue")?.classList.add("hidden");
     document.getElementById("menu-settings")?.classList.add("hidden");
     const addStoreBtn = document.getElementById("btn-add-store");
     if (addStoreBtn) addStoreBtn.classList.add("hidden");
   } else if (role === 'store_owner') {
-    // Owner sees almost everything
+    document.getElementById("menu-categories")?.classList.add("hidden");
+    document.getElementById("menu-customers")?.classList.add("hidden");
   }
   
   loadStoresIntoSelects();
@@ -773,7 +796,12 @@ function applyRolePermissions() {
 document.addEventListener("DOMContentLoaded", () => {
   applyRolePermissions();
   loadCategoriesIntoModal(); // Tải danh mục vào form popup modal
-  switchAdminTab("dashboard"); // Mặc định mở Tab Dashboard thống kê đầu tiên
+  
+  if (adminUser && adminUser.role_name === 'staff') {
+    switchAdminTab("orders");
+  } else {
+    switchAdminTab("dashboard");
+  }
 
   // Đăng ký sự kiện submit Form Thêm / Sửa sản phẩm
   const formProduct = document.getElementById("form-product");
