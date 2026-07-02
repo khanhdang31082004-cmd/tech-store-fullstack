@@ -334,7 +334,11 @@ function addToCart(productId, name, price, imageUrl) {
   localStorage.setItem("cart", JSON.stringify(cart)); // Lưu lại mảng giỏ hàng vào trình duyệt
   showToast(`Đã thêm "${name}" vào giỏ hàng.`, "success");
   updateCartBadge(); // Cập nhật lại số hiển thị trên icon giỏ hàng của Navbar
-  renderMiniCart(); // Đồng bộ ngay với Popup Mini Cart
+  
+  // Đồng bộ ngay với Popup Cart Drawer nếu đang mở
+  if (!document.getElementById("cart-drawer").classList.contains("translate-x-full")) {
+    renderCartDrawer();
+  }
 
   // Đồng bộ giỏ hàng lên server-side nếu người dùng đã đăng nhập
   const token = localStorage.getItem("token");
@@ -346,50 +350,40 @@ function addToCart(productId, name, price, imageUrl) {
   }
 }
 
-// Hàm khởi tạo và lắng nghe ô nhập liệu tìm kiếm sản phẩm
-function initSearch() {
+// Hàm xử lý tìm kiếm sản phẩm từ thanh công cụ
+window.handleSearch = function(event) {
+  event.preventDefault();
   const searchInput = document.getElementById("search-input");
-  const searchBtn = document.getElementById("search-btn");
-
-  if (!searchInput) return;
-
-  const handleSearch = () => {
+  if (searchInput) {
     currentSearch = searchInput.value.trim();
-    loadProducts(); // Lấy lại sản phẩm ứng với từ khóa mới
-  };
-
-  searchBtn.addEventListener("click", handleSearch); // Click kính lúp
-  searchInput.addEventListener("keypress", (e) => {
-    if (e.key === 'Enter') handleSearch(); // Nhấn Enter khi đang gõ
-  });
-}
-
-// =========================================================================
-// 4. LOGIC XỬ LÝ MINI CART POPUP & HỆ THỐNG CỬA HÀNG
-// =========================================================================
-
-// Toggle hiển thị Popup Mini Cart
-function toggleMiniCart(state) {
-  const popup = document.getElementById("mini-cart-popup");
-  if (!popup) return;
-
-  if (state === undefined) {
-    popup.classList.toggle("hidden");
-    if (!popup.classList.contains("hidden")) {
-      renderMiniCart();
-    }
-  } else if (state === false) {
-    popup.classList.add("hidden");
-  } else {
-    popup.classList.remove("hidden");
-    renderMiniCart();
+    loadProducts();
   }
 }
 
-// Render dữ liệu lên Popup Mini Cart
-function renderMiniCart() {
-  const container = document.getElementById("mini-cart-items");
-  const totalLabel = document.getElementById("mini-cart-total");
+// =========================================================================
+// 4. LOGIC XỬ LÝ CART DRAWER & HỆ THỐNG CỬA HÀNG
+// =========================================================================
+
+// Toggle hiển thị Cart Drawer
+window.toggleCartDrawer = function(state) {
+  const drawer = document.getElementById("cart-drawer");
+  const overlay = document.getElementById("cart-drawer-overlay");
+  if (!drawer || !overlay) return;
+
+  if (state) {
+    drawer.classList.remove("translate-x-full");
+    overlay.classList.remove("hidden");
+    renderCartDrawer();
+  } else {
+    drawer.classList.add("translate-x-full");
+    overlay.classList.add("hidden");
+  }
+};
+
+// Render dữ liệu lên Cart Drawer
+window.renderCartDrawer = function() {
+  const container = document.getElementById("cart-drawer-items");
+  const totalLabel = document.getElementById("cart-drawer-total");
   if (!container) return;
 
   let cart = [];
@@ -401,8 +395,10 @@ function renderMiniCart() {
 
   if (cart.length === 0) {
     container.innerHTML = `
-      <div class="text-center py-6 text-slate-400">
-        <p class="text-xs font-semibold">Hiện chưa có sản phẩm nào.</p>
+      <div class="text-center py-12 text-slate-400">
+        <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+        <p class="text-sm font-semibold">Giỏ hàng của bạn đang trống.</p>
+        <button onclick="toggleCartDrawer(false)" class="mt-4 px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition-colors border-0 cursor-pointer">Tiếp tục mua sắm</button>
       </div>
     `;
     totalLabel.textContent = "0 đ";
@@ -417,19 +413,23 @@ function renderMiniCart() {
     totalCost += cost;
 
     html += `
-      <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
-        <div class="flex items-center gap-2 max-w-[180px]">
-          <img src="${item.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500';" alt="${item.product_name}" class="w-10 h-10 object-cover rounded border border-slate-200">
-          <div>
-            <h4 class="text-xs font-bold text-slate-800 truncate">${item.product_name}</h4>
-            <span class="text-[10px] text-slate-400">SL: ${item.quantity} x ${formatCurrency(item.price)}</span>
+      <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex gap-3">
+        <img src="${item.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500';" class="w-20 h-20 object-cover rounded border border-slate-100 flex-shrink-0">
+        <div class="flex-grow flex flex-col justify-between">
+          <div class="flex justify-between items-start">
+            <h4 class="text-sm font-bold text-slate-800 leading-snug line-clamp-2 pr-2">${item.product_name}</h4>
+            <button onclick="removeFromCartDrawer(${item.product_id})" class="text-slate-300 hover:text-rose-500 transition-colors bg-transparent border-0 p-0 flex-shrink-0 cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
           </div>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="text-xs font-extrabold text-sky-600">${formatCurrency(cost)}</span>
-          <button onclick="removeFromMiniCart(${item.product_id})" class="text-slate-350 hover:text-rose-500 transition-colors border-0 bg-transparent p-0 cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-          </button>
+          <div class="flex justify-between items-center mt-2">
+            <div class="flex items-center border border-slate-200 rounded">
+              <button onclick="updateCartItemQuantity(${item.product_id}, -1)" class="w-7 h-7 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors border-0 cursor-pointer">-</button>
+              <span class="w-8 text-center text-xs font-bold">${item.quantity}</span>
+              <button onclick="updateCartItemQuantity(${item.product_id}, 1)" class="w-7 h-7 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors border-0 cursor-pointer">+</button>
+            </div>
+            <span class="font-extrabold text-sky-600 text-sm">${formatCurrency(cost)}</span>
+          </div>
         </div>
       </div>
     `;
@@ -437,23 +437,40 @@ function renderMiniCart() {
 
   container.innerHTML = html;
   totalLabel.textContent = formatCurrency(totalCost);
-}
+};
 
-// Xóa sản phẩm khỏi giỏ trực tiếp từ Popup Mini Cart
-function removeFromMiniCart(productId) {
-  let cart = [];
-  try {
-    cart = JSON.parse(localStorage.getItem("cart")) || [];
-  } catch (e) {
-    cart = [];
+// Cập nhật số lượng sản phẩm trong drawer
+window.updateCartItemQuantity = function(productId, delta) {
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const index = cart.findIndex(item => item.product_id === productId);
+  if (index > -1) {
+    cart[index].quantity += delta;
+    if (cart[index].quantity <= 0) {
+      cart.splice(index, 1);
+      showToast("Đã xóa sản phẩm khỏi giỏ.", "info");
+    }
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCartBadge();
+    renderCartDrawer();
   }
+};
 
-  const newCart = cart.filter(item => item.product_id !== productId);
-  localStorage.setItem("cart", JSON.stringify(newCart));
+// Xóa sản phẩm khỏi giỏ trực tiếp từ Cart Drawer
+window.removeFromCartDrawer = function(productId) {
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  cart = cart.filter(item => item.product_id !== productId);
+  localStorage.setItem("cart", JSON.stringify(cart));
   showToast("Đã xóa sản phẩm khỏi giỏ.", "info");
   updateCartBadge();
-  renderMiniCart();
-}
+  renderCartDrawer();
+};
+
+window.clearCart = function() {
+  localStorage.removeItem("cart");
+  showToast("Đã xóa toàn bộ giỏ hàng.", "info");
+  updateCartBadge();
+  renderCartDrawer();
+};
 
 // Mở/Đóng Popup Hệ thống cửa hàng
 async function toggleStoreModal(state) {
@@ -660,28 +677,48 @@ async function showProductDetail(productId) {
     }
 
     content.innerHTML = `
-      <div class="flex items-center justify-center w-full bg-slate-50 rounded-xl overflow-hidden shadow-inner p-2 border border-slate-100">
-        <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500';" alt="${prod.product_name}" class="w-full object-contain rounded-lg" style="max-height: 420px;">
-      </div>
-      <div class="flex flex-col justify-between">
-        <div>
-          <span class="inline-block bg-slate-100 text-sky-600 font-bold text-[10px] px-2.5 py-1 rounded mb-2">${prod.category_name}</span>
-          <h3 class="font-extrabold text-slate-800 text-base leading-snug mb-3">${prod.product_name}</h3>
-          
-          <div class="text-xs text-slate-500 space-y-2 mb-4 leading-relaxed">
-            <p><strong>Mô tả chi tiết:</strong></p>
-            <p class="bg-slate-50 p-3.5 rounded-xl border border-slate-150 text-xs text-slate-700 font-medium leading-relaxed">${prod.description || 'Sản phẩm công nghệ cao cấp chính hãng từ đối tác Tech Store. Đảm bảo đầy đủ hóa đơn chứng từ và bảo hành toàn quốc.'}</p>
-            <p>Chi nhánh cửa hàng: <span class="text-slate-800 font-bold">${prod.store_name || 'Tech Store Việt Nam'}</span></p>
-            <p>Trạng thái tồn kho: <span class="font-bold ${isOutOfStock ? 'text-rose-600' : 'text-emerald-600'}">${isOutOfStock ? 'Hết hàng' : `Còn hàng (${prod.stock_quantity} chiếc)`}</span></p>
-          </div>
+      <div class="flex flex-col md:flex-row gap-8 w-full p-2">
+        <div class="w-full md:w-1/2 flex items-center justify-center bg-white rounded-xl overflow-hidden">
+          <img src="${prod.image_url || 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500';" alt="${prod.product_name}" class="w-full object-contain rounded-lg" style="max-height: 420px;">
         </div>
-
-        <div class="border-t border-slate-100 pt-3">
-          <div class="flex items-center justify-between mb-3.5">
-            <span class="text-[10px] text-slate-400 font-semibold">Giá bán lẻ:</span>
-            <span class="text-xl font-black text-sky-600">${formatCurrency(prod.price)}</span>
+        <div class="w-full md:w-1/2 flex flex-col justify-start">
+          <span class="inline-block self-start bg-slate-100 text-sky-600 font-bold text-[11px] px-3 py-1.5 rounded-lg mb-3 uppercase tracking-wider">${prod.category_name}</span>
+          <h3 class="font-black text-slate-800 text-2xl leading-tight mb-4">${prod.product_name}</h3>
+          
+          <div class="flex items-center gap-2 mb-6">
+            <span class="text-amber-400 text-lg">★★★★★</span>
+            <span class="text-slate-500 font-medium text-sm">(Đánh giá 4.8/5.0)</span>
+            <span class="mx-2 text-slate-300">|</span>
+            <span class="text-slate-500 text-sm">Đã bán 120+</span>
           </div>
-          ${buttonHtml}
+          
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-700 leading-relaxed mb-6">
+            <h4 class="font-bold text-slate-800 mb-2">Đặc điểm nổi bật:</h4>
+            <ul class="list-disc list-inside space-y-1.5 marker:text-sky-500">
+              <li>Sản phẩm phân phối chính hãng.</li>
+              <li>Bảo hành toàn quốc đổi mới trong 30 ngày.</li>
+              <li>${prod.description || 'Hiệu năng tuyệt vời, đáp ứng hoàn hảo mọi nhu cầu sử dụng công nghệ của bạn.'}</li>
+            </ul>
+          </div>
+
+          <div class="flex flex-col gap-2 mb-8 text-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500">Chi nhánh phân phối:</span>
+              <span class="font-bold text-slate-800">${prod.store_name || 'Tech Store Việt Nam'}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500">Trạng thái tồn kho:</span>
+              <span class="font-bold ${isOutOfStock ? 'text-rose-600' : 'text-emerald-600'}">${isOutOfStock ? 'Hết hàng' : `Còn hàng (${prod.stock_quantity})`}</span>
+            </div>
+          </div>
+
+          <div class="mt-auto border-t border-slate-100 pt-5">
+            <div class="flex items-end justify-between mb-5">
+              <span class="text-sm text-slate-500 font-medium pb-1">Giá bán lẻ:</span>
+              <span class="text-3xl font-black text-rose-600 leading-none">${formatCurrency(prod.price)}</span>
+            </div>
+            ${buttonHtml}
+          </div>
         </div>
       </div>
       ${relatedHtml}
@@ -697,7 +734,7 @@ async function showProductDetail(productId) {
 }
 
 // Hàm đóng Popup Modal Chi Tiết Sản Phẩm
-function closeProductDetailModal() {
+window.closeProductDetailModal = function() {
   const modal = document.getElementById("product-detail-modal");
   if (modal) {
     modal.classList.add("hidden");
@@ -710,32 +747,24 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("products-container")) {
     loadCategories();
     loadProducts();
-    initSearch();
-    initBannerSlider();
+    // Khởi tạo slider banner
+    if (typeof initBannerSlider === 'function') {
+      initBannerSlider();
+    }
   }
   updateNavbar();
 
-  // Đóng các modal khi click ra ngoài hoặc nhấn ESC
-  const modals = ["product-detail-modal", "product-modal", "employee-modal", "store-modal"];
-  modals.forEach(id => {
-    const modal = document.getElementById(id);
-    if (modal) {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.add('hidden');
-        }
-      });
-    }
-  });
-
+  // Đóng các modal khi nhấn ESC
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      modals.forEach(id => {
-        const modal = document.getElementById(id);
-        if (modal && !modal.classList.contains('hidden')) {
-          modal.classList.add('hidden');
-        }
-      });
+      // Đóng product modal
+      closeProductDetailModal();
+      
+      // Đóng store modal
+      if (typeof toggleStoreModal === 'function') toggleStoreModal(false);
+      
+      // Đóng cart drawer
+      if (typeof toggleCartDrawer === 'function') toggleCartDrawer(false);
     }
   });
 });

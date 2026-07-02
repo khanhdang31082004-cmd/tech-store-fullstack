@@ -1,19 +1,21 @@
 /* =========================================================================
-   ĐỒ ÁN: WEBSITE BÁN MÁY TÍNH VÀ THIẾT BỊ CÔNG NGHỆ
+   ĐỒ ÁN: WEBSITE BÁN MÁY TÍNH VÀ THIẾT BỊ CÔNG NGHỆ - KHÁNH STORE
    FILE CSS: style.css - Định nghĩa giao diện hiện đại phong cách công nghệ
    ========================================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
+/* ==========================================
+   GLOBAL STYLE
+   ========================================== */
 :root {
-  --bg-cyber-dark: #0b0f19; /* Nền tối cyberpunk */
-  --bg-card-dark: #161f30; /* Nền card tối */
-  --bg-panel-light: #f8fafc; /* Nền sáng slate 50 */
+  --bg-cyber-dark: #0b0f19;
+  --bg-card-dark: #161f30;
+  --bg-panel-light: #f8fafc;
   --text-white: #ffffff;
   --text-muted: #94a3b8;
   --text-dark: #0f172a;
   
-  /* Hệ màu neon công nghệ */
   --cyan-neon: #00f0ff;
   --cyan-glow: rgba(0, 240, 255, 0.35);
   --green-neon: #39ff14;
@@ -29,36 +31,11 @@ body {
   scroll-behavior: smooth;
 }
 
-/* Hiệu ứng zoom nhẹ và bóng đổ phát sáng cho Card sản phẩm */
-.hover-scale {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.product-card {
-  position: relative;
-  z-index: 1;
-}
-.hover-scale:hover, .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05), 0 5px 10px rgba(0, 0, 0, 0.02);
-  z-index: 2 !important;
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.01em;
 }
 
-/* Fix z-index cho header và sidebar không bị overlap nội dung */
-header.sticky, header {
-  z-index: 1000 !important;
-}
-aside.sticky, aside {
-  z-index: 40 !important;
-}
-
-/* Nền mờ phủ kính của các Modal */
-.modal-overlay {
-  background-color: rgba(11, 15, 25, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-/* Tùy biến thanh cuộn Scrollbar mượt mà */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
@@ -74,91 +51,19 @@ aside.sticky, aside {
   background: #94a3b8;
 }
 
-/* Hiệu ứng trượt và ẩn hiện cho Banner Slider */
-.banner-slide {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+/* Utilities */
+.hover-scale {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.banner-slide.opacity-100 {
-  opacity: 1;
-  pointer-events: auto;
+.hover-scale:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05), 0 5px 10px rgba(0, 0, 0, 0.02);
 }
 
-/* Phát sáng neon cho nút bấm */
 .glow-cyan:hover {
   box-shadow: 0 0 20px var(--cyan-glow);
 }
-.glow-emerald:hover {
-  box-shadow: 0 0 20px var(--green-glow);
-}
 
-/* Custom styles cho Popup Mini Cart dropdown */
-#mini-cart-popup {
-  box-shadow: 0 20px 50px rgba(11, 15, 25, 0.15);
-  animation: scaleUpIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes scaleUpIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Card Voucher nét đứt đặc trưng */
-.coupon-border {
-  border-style: dashed;
-}
-
-/* Font chữ to rõ ràng & Responsive */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
-  letter-spacing: -0.01em;
-}
-
-/* Khung bọc tối công nghệ cho Header / Admin sidebar */
-.bg-tech-dark {
-  background-color: var(--bg-cyber-dark);
-}
-
-/* =========================================================================
-   PRODUCT CARD - Bố cục card sản phẩm chuẩn, bằng nhau, chuyên nghiệp
-   ========================================================================= */
-
-/* Grid sản phẩm: tất cả card bằng chiều cao nhau */
-#products-container {
-  align-items: stretch;
-}
-
-/* Card wrapper */
-.product-card {
-  /* Chiều cao card đồng đều trong grid */
-  height: 100%;
-}
-
-/* Khung ảnh sản phẩm: cố định 176px, object-cover đảm bảo không méo */
-.product-card .relative.h-44 {
-  height: 176px;
-  min-height: 176px;
-}
-
-/* Tooltip mô tả: mặc định ẩn xuống dưới, hiện lên khi hover vào ảnh */
-.hover-tooltip-show {
-  transform: translateY(100%);
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Khi hover vào ảnh cha (relative container) thì tooltip trượt lên */
-.product-card .relative:hover .hover-tooltip-show {
-  transform: translateY(0);
-}
-
-/* Đảm bảo line-clamp hoạt động trên mọi trình duyệt */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -171,4 +76,117 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ==========================================
+   HEADER
+   ========================================== */
+header.sticky, header {
+  z-index: 40 !important;
+}
+
+/* ==========================================
+   CATEGORY SIDEBAR
+   ========================================== */
+aside.sticky, aside {
+  z-index: 30 !important;
+}
+
+.category-btn.active {
+  background-color: #e0f2fe; /* bg-sky-100 */
+  color: #0369a1; /* text-sky-700 */
+  border-left: 3px solid var(--cyan-neon);
+}
+
+/* ==========================================
+   PRODUCT GRID & BANNER
+   ========================================== */
+.banner-slide {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.banner-slide.opacity-100 {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ==========================================
+   PRODUCT CARD
+   ========================================== */
+#products-container {
+  align-items: stretch;
+}
+
+.product-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  z-index: 2 !important;
+}
+
+/* ==========================================
+   PRODUCT MODAL
+   ========================================== */
+.modal-overlay {
+  background-color: rgba(11, 15, 25, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+#modal-content-panel.scale-100 {
+  transform: scale(1);
+}
+
+/* ==========================================
+   CART DRAWER
+   ========================================== */
+#cart-drawer {
+  /* Transition applies to transform handled by Tailwind utility classes */
+  will-change: transform;
+}
+
+/* Custom scrollbar cho drawer */
+#cart-drawer-items::-webkit-scrollbar {
+  width: 4px;
+}
+#cart-drawer-items::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+/* ==========================================
+   ZALO BUTTON
+   ========================================== */
+.zalo-button {
+  animation: bounceZalo 2s infinite;
+}
+
+@keyframes bounceZalo {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.05);
+  }
+}
+.zalo-button:hover {
+  animation: none;
+  transform: scale(1.1);
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 768px) {
+  #cart-drawer {
+    max-width: 100%;
+  }
 }
