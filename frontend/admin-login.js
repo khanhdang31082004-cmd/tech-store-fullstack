@@ -3,7 +3,7 @@
 // FILE JAVASCRIPT: admin-login.js - Xử lý logic Đăng nhập Quản Trị Viên
 // =========================================================================
 
-const API_BASE_URL = 'https://tech-store-fullstack-production.up.railway.app';
+const API_BASE_URL = "https://tech-store-fullstack-production.up.railway.app/api";
 
 function showToast(message, type = 'success') {
   let container = document.getElementById('toast-container');
@@ -73,7 +73,9 @@ document.addEventListener("DOMContentLoaded", () => {
           body: JSON.stringify({ username, password })
         });
 
-        const data = await response.json();
+        const text = await response.text();
+        console.log("LOGIN RESPONSE:", text);
+        const data = JSON.parse(text);
 
         if (!response.ok) {
           throw new Error(data.message || "Đăng nhập thất bại.");
