@@ -110,7 +110,7 @@ function isAdmin(req, res, next) {
 
 // Middleware kiểm tra tài khoản có phải là Nhân viên trở lên không (admin, store_owner, manager, staff)
 function isStaff(req, res, next) {
-  const allowedRoles = ['admin', 'store_owner', 'manager', 'staff'];
+  const allowedRoles = ['admin', 'owner', 'manager', 'staff'];
   if (!req.user || !allowedRoles.includes(req.user.role_name)) {
     return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Chỉ dành cho nhân viên cửa hàng.' });
   }
@@ -119,7 +119,7 @@ function isStaff(req, res, next) {
 
 // Middleware kiểm tra tài khoản có phải là Quản lý trở lên không (admin, store_owner, manager)
 function isManager(req, res, next) {
-  const allowedRoles = ['admin', 'store_owner', 'manager'];
+  const allowedRoles = ['admin', 'owner', 'manager'];
   if (!req.user || !allowedRoles.includes(req.user.role_name)) {
     return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Chỉ dành cho quản lý hoặc chủ cửa hàng.' });
   }
@@ -128,7 +128,7 @@ function isManager(req, res, next) {
 
 // Middleware kiểm tra tài khoản có phải là Chủ cửa hàng trở lên không (admin, store_owner)
 function isStoreOwner(req, res, next) {
-  const allowedRoles = ['admin', 'store_owner'];
+  const allowedRoles = ['admin', 'owner'];
   if (!req.user || !allowedRoles.includes(req.user.role_name)) {
     return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Chỉ dành cho chủ cửa hàng.' });
   }
@@ -845,7 +845,7 @@ app.put('/api/admin/orders/:id', authenticateToken, isStaff, async (req, res) =>
 app.delete('/api/admin/orders/:id', authenticateToken, isStaff, async (req, res) => {
   const orderId = req.params.id;
   
-  if (req.user.role_name !== 'admin' && req.user.role_name !== 'store_owner') {
+  if (req.user.role_name !== 'admin' && req.user.role_name !== 'owner') {
     return res.status(403).json({ success: false, message: 'Không có quyền xóa đơn hàng' });
   }
 

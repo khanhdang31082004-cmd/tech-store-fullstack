@@ -43,20 +43,19 @@ function applyRolePermissions() {
 
   // Ẩn menu theo vai trò
   if (role === 'staff') {
-    // Staff: Chỉ xem Sản phẩm, Đơn hàng, Khách hàng
+    // Staff: Chỉ xem Đơn hàng, Khách hàng
     document.getElementById('menu-dashboard')?.classList.add('hidden');
+    document.getElementById('menu-products')?.classList.add('hidden');
     document.getElementById('menu-categories')?.classList.add('hidden');
     document.getElementById('menu-employees')?.classList.add('hidden');
     document.getElementById('menu-revenue')?.classList.add('hidden');
     document.getElementById('menu-settings')?.classList.add('hidden');
   } else if (role === 'manager') {
-    // Manager: Xem Tổng quan, Sản phẩm, Danh mục, Đơn hàng, Khách hàng
-    document.getElementById('menu-employees')?.classList.add('hidden');
+    // Manager: Xem Tổng quan, Sản phẩm, Danh mục, Đơn hàng, Khách hàng, Nhân viên
     document.getElementById('menu-revenue')?.classList.add('hidden');
     document.getElementById('menu-settings')?.classList.add('hidden');
   } else if (role === 'owner') {
-    // Owner: Tương đương Admin nhưng có thể tùy biến sau (ẩn Settings hệ thống lõi)
-    document.getElementById('menu-employees')?.classList.add('hidden');
+    // Owner: Tương đương Admin, được xem toàn bộ
   }
 }
 

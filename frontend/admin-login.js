@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Kiểm tra quyền: chỉ cho phép role quản trị
         const allowedRoles = ['admin', 'owner', 'manager', 'staff'];
         if (!allowedRoles.includes(data.user.role)) {
-          throw new Error("Tài khoản của bạn không có quyền truy cập trang quản trị.");
+          throw new Error("Tài khoản khách hàng không có quyền truy cập hệ thống quản trị");
         }
 
         // ĐĂNG NHẬP THÀNH CÔNG
