@@ -122,20 +122,8 @@ function updateNavbar() {
   if (!authContainer) return;
 
   if (token && currentUser) {
-    let adminLink = '';
-    const allowedRoles = ['admin', 'store_owner', 'manager', 'staff'];
-    if (currentUser && allowedRoles.includes(currentUser.role_name)) {
-      adminLink = `
-        <a href="admin.html" class="flex items-center gap-1 text-amber-400 hover:text-amber-300 font-bold transition-colors mr-2 border border-amber-500/30 px-2 py-1.5 rounded-lg bg-amber-500/10">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-          Hệ thống Admin
-        </a>
-      `;
-    }
-
     authContainer.innerHTML = `
       <div class="flex items-center gap-3">
-        ${adminLink}
         <a href="profile.html" class="flex items-center gap-1 text-white hover:text-sky-300 font-bold transition-colors">
           <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
           <span class="max-w-[100px] truncate">Chào, ${currentUser.username}</span>

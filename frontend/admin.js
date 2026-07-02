@@ -11,18 +11,16 @@ try {
 } catch (e) {}
 
 if (!adminToken || !adminUser) {
-  window.location.href = "auth.html";
+  window.location.href = "admin-login.html";
 } else {
   // Phân quyền: các vai trò được vào trang quản trị gồm: admin, owner, manager, staff
   const allowedRoles = ['admin', 'owner', 'manager', 'staff'];
   
   if (adminUser.role === 'user') {
-    showToast("Bạn không có quyền truy cập trang quản trị.", "error");
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 1000);
+    alert("Bạn không có quyền truy cập hệ thống quản trị");
+    window.location.href = "index.html";
   } else if (!allowedRoles.includes(adminUser.role)) {
-    window.location.href = "auth.html";
+    window.location.href = "admin-login.html";
   }
 }
 

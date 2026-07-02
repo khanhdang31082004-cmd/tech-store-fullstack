@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập Quản Trị Hệ Thống - KHÁNH STORE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              900: '#0b0f19',
+              850: '#0f1524',
+              800: '#161f30',
+              750: '#1f2b42',
+              500: '#00f0ff',
+              400: '#22d3ee',
+              neonGreen: '#39ff14',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-cyber-900 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+  
+  <!-- Phông nền mờ công nghệ -->
+  <div class="absolute inset-0 bg-[radial-gradient(#00f0ff_1px,transparent_1px)] [background-size:30px_30px] opacity-10"></div>
+  
+  <div class="max-w-md w-full space-y-6 glass-effect p-8 rounded-2xl border border-cyber-750 shadow-2xl relative z-10 bg-cyber-850/85 text-white">
+    
+    <!-- Logo & Header -->
+    <div class="text-center">
+      <h1 class="inline-block text-3xl font-black tracking-widest bg-gradient-to-r from-cyber-500 via-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-1.5 transition-all">
+        KHÁNH STORE
+      </h1>
+      <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Hệ Thống Quản Trị Trung Tâm</p>
+    </div>
+
+    <!-- Hướng dẫn tài khoản Demo -->
+    <div class="bg-cyber-900/60 border border-cyber-750 rounded-xl p-4 text-xs text-slate-300 leading-relaxed shadow-inner">
+      <p class="font-bold text-cyber-500 mb-1.5 flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Tài khoản quản trị viên:
+      </p>
+
+      <ul class="list-disc pl-4 space-y-1">
+        <li>Admin hệ thống: <strong class="text-amber-400 font-extrabold">admin</strong> / pass: <strong class="text-white">123456</strong></li>
+        <li>Chủ cửa hàng: <strong class="text-indigo-400 font-extrabold">owner</strong> / pass: <strong class="text-white">123456</strong></li>
+        <li>Quản lý chi nhánh: <strong class="text-sky-400 font-extrabold">manager</strong> / pass: <strong class="text-white">123456</strong></li>
+        <li>Nhân viên bán hàng: <strong class="text-purple-400 font-extrabold">staff</strong> / pass: <strong class="text-white">123456</strong></li>
+      </ul>
+    </div>
+
+    <!-- FORM ĐĂNG NHẬP (LOGIN) -->
+    <form id="form-login-admin" class="space-y-4 mt-4">
+      <div>
+        <label for="login-username" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Tên đăng nhập quản trị *</label>
+        <input type="text" id="login-username" required class="w-full bg-cyber-900 border border-cyber-750 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 focus:border-cyber-500 transition-all text-white placeholder-slate-500" placeholder="admin">
+      </div>
+      <div>
+        <label for="login-password" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Mật khẩu *</label>
+        <input type="password" id="login-password" required class="w-full bg-cyber-900 border border-cyber-750 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 focus:border-cyber-500 transition-all text-white placeholder-slate-500" placeholder="••••••••">
+      </div>
+      
+      <button type="submit" class="w-full py-3 mt-4 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-xs shadow-lg hover-scale glow-cyan transition-all flex items-center justify-center gap-2 border-0 cursor-pointer focus:outline-none">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+        Truy cập trang Quản Trị
+      </button>
+    </form>
+  </div>
+  
+  <div id="toast-container"></div>
+  <script src="admin-login.js"></script>
+</body>
+</html>

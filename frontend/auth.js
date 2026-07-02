@@ -46,11 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
   } catch (e) {}
 
   if (token && user) {
-    if (['admin', 'owner', 'manager', 'staff'].includes(user.role)) {
-      window.location.href = "admin.html";
-    } else {
-      window.location.href = "index.html";
-    }
+    window.location.href = "index.html";
   }
 
   // 2. Lắng nghe và xử lý sự kiện submit Form ĐĂNG NHẬP
@@ -101,13 +97,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         showToast(data.message || "Đăng nhập thành công!", "success");
 
-        // Điều hướng dựa theo vai trò (Role): Admin vào trang quản trị, User vào trang mua sắm
+        // Điều hướng khách hàng vào trang mua sắm
         setTimeout(() => {
-          if (['admin', 'owner', 'manager', 'staff'].includes(data.user.role)) {
-            window.location.href = "admin.html";
-          } else {
-            window.location.href = "index.html";
-          }
+          window.location.href = "index.html";
         }, 1000);
 
       } catch (error) {
