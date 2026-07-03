@@ -44,9 +44,15 @@ function renderCart() {
   }
 
   if (clearCartContainer) clearCartContainer.classList.remove("hidden");
-  clearCartContainer.classList.add("flex"); // Ensure flex is applied since it might be hidden initially
+  clearCartContainer.classList.add("flex");
 
   let html = "";
+  
+  const currentStoreName = localStorage.getItem("selectedStoreName");
+  if (currentStoreName) {
+    html += `<div class="col-span-full text-sm font-bold text-sky-600 px-6 py-2">Giỏ hàng thuộc chi nhánh: ${currentStoreName}</div>`;
+  }
+
   let totalCost = 0; // Bộ tính tổng tiền
 
   // Duyệt danh sách các sản phẩm đang có trong giỏ hàng
@@ -246,6 +252,8 @@ document.addEventListener("DOMContentLoaded", () => {
             payment_method: payment,
             notes: notes || null,
             cccd: cccd || null,
+            store_id: localStorage.getItem("selectedStoreId") ? parseInt(localStorage.getItem("selectedStoreId")) : null,
+            store_name: localStorage.getItem("selectedStoreName") || null,
             items: items
           })
         });
