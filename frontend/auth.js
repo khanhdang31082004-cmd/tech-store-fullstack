@@ -119,22 +119,76 @@ document.addEventListener("DOMContentLoaded", () => {
     formRegister.addEventListener("submit", async (e) => {
       e.preventDefault();
 
+      // Validation helpers
+      const validateField = (id, message, validatorRegex = null, invalidMessage = null) => {
+        const el = document.getElementById(id);
+        if (!el) return true;
+        const val = el.value.trim();
+        const errorEl = document.getElementById(id + "-error");
+        
+        let errorMsg = null;
+        if (!val) {
+          errorMsg = message;
+        } else if (validatorRegex && !validatorRegex.test(val)) {
+          errorMsg = invalidMessage;
+        }
+        
+        if (errorMsg) {
+          el.classList.add("input-error", "shake");
+          
+          setTimeout(() => {
+            el.classList.remove("shake");
+          }, 300);
+
+          if (!errorEl) {
+            const err = document.createElement("div");
+            err.id = id + "-error";
+            err.className = "error-message";
+            err.textContent = errorMsg;
+            el.parentNode.appendChild(err);
+          } else {
+            errorEl.textContent = errorMsg;
+          }
+          
+          const clearErr = () => {
+            el.classList.remove("input-error");
+            const err = document.getElementById(id + "-error");
+            if (err) err.remove();
+            el.removeEventListener("input", clearErr);
+            el.removeEventListener("change", clearErr);
+          };
+          el.addEventListener("input", clearErr);
+          el.addEventListener("change", clearErr);
+          return false;
+        }
+        return true;
+      };
+
+      let isValid = true;
+      const fields = [
+        { id: "reg-username", msg: "Vui lòng nhập tên đăng nhập" },
+        { id: "reg-email", msg: "Vui lòng nhập email", regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, invalidMsg: "Email không hợp lệ" },
+        { id: "reg-fullname", msg: "Vui lòng nhập họ và tên" },
+        { id: "reg-password", msg: "Vui lòng nhập mật khẩu", regex: /^.{6,}$/, invalidMsg: "Mật khẩu phải dài tối thiểu 6 ký tự" }
+      ];
+
+      for (const field of fields) {
+        if (!validateField(field.id, field.msg, field.regex, field.invalidMsg)) {
+          isValid = false;
+        }
+      }
+
+      if (!isValid) return;
+
       const username = document.getElementById("reg-username").value.trim();
       const email = document.getElementById("reg-email").value.trim();
       const password = document.getElementById("reg-password").value.trim();
       const fullname = document.getElementById("reg-fullname").value.trim();
-      const phone = document.getElementById("reg-phone").value.trim();
-      const address = document.getElementById("reg-address").value.trim();
-
-      if (!username || !email || !password || !fullname) {
-        showToast("Vui lòng điền đủ các trường thông tin bắt buộc (*).", "error");
-        return;
-      }
-
-      if (password.length < 6) {
-        showToast("Mật khẩu phải dài tối thiểu 6 ký tự.", "error");
-        return;
-      }
+      
+      const phoneEl = document.getElementById("reg-phone");
+      const addressEl = document.getElementById("reg-address");
+      const phone = phoneEl ? phoneEl.value.trim() : "";
+      const address = addressEl ? addressEl.value.trim() : "";
 
       try {
         // Gửi toàn bộ dữ liệu đăng ký lên API Backend
@@ -148,8 +202,8 @@ document.addEventListener("DOMContentLoaded", () => {
             password,
             email,
             full_name: fullname,
-            phone: phone || null,
-            address: address || null
+            phone: phone || "",
+            address: address || ""
           })
         });
 
@@ -159,8 +213,13 @@ document.addEventListener("DOMContentLoaded", () => {
           throw new Error(data.message || "Đăng ký thất bại.");
         }
 
-        showToast("Đăng ký thành công! Đang chuyển về tab Đăng nhập...", "success");
+        showToast("Đăng ký thành công, vui lòng đăng nhập", "success");
         formRegister.reset();
+        
+        const loginUsernameInput = document.getElementById("login-username");
+        if (loginUsernameInput) {
+          loginUsernameInput.value = username;
+        }
 
         // Chuyển sang Tab Đăng nhập để người dùng login bằng tài khoản vừa đăng ký
         setTimeout(() => {

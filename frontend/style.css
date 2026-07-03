@@ -220,3 +220,29 @@ aside.sticky, aside {
 .zalo-icon {
   font-size: 20px;
 }
+
+/* ==========================================
+   CHECKOUT FORM VALIDATION
+   ========================================== */
+.input-error {
+  border-color: #ff3b5c !important;
+  background: #fff5f7 !important;
+}
+
+.error-message {
+  color: #ff3b5c;
+  font-size: 13px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.shake {
+  animation: shakeInput 0.28s ease-in-out;
+}
+
+@keyframes shakeInput {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+}

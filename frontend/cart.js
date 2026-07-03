@@ -230,27 +230,39 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault(); // Ngăn trình duyệt tự động load lại trang
 
       // Validation helpers
-      const validateField = (id, message) => {
+      const validateField = (id, message, validatorRegex = null, invalidMessage = null) => {
         const el = document.getElementById(id);
         if (!el) return true;
         const val = el.value.trim();
         const errorEl = document.getElementById(id + "-error");
         
+        let errorMsg = null;
         if (!val) {
-          el.classList.add("border-rose-500", "border-2");
+          errorMsg = message;
+        } else if (validatorRegex && !validatorRegex.test(val)) {
+          errorMsg = invalidMessage;
+        }
+        
+        if (errorMsg) {
+          el.classList.add("input-error", "shake");
+          
+          setTimeout(() => {
+            el.classList.remove("shake");
+          }, 300);
+
           if (!errorEl) {
             const err = document.createElement("div");
             err.id = id + "-error";
-            err.className = "text-rose-500 text-xs mt-1 font-semibold";
-            err.textContent = message;
+            err.className = "error-message";
+            err.textContent = errorMsg;
             el.parentNode.appendChild(err);
           } else {
-            errorEl.textContent = message;
+            errorEl.textContent = errorMsg;
           }
           
           // Clear error on input
           const clearErr = () => {
-            el.classList.remove("border-rose-500", "border-2");
+            el.classList.remove("input-error");
             const err = document.getElementById(id + "-error");
             if (err) err.remove();
             el.removeEventListener("input", clearErr);
@@ -268,13 +280,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const fields = [
         { id: "checkout-fullname", msg: "Vui lòng nhập họ tên người nhận" },
-        { id: "checkout-phone", msg: "Vui lòng nhập số điện thoại" },
+        { id: "checkout-phone", msg: "Vui lòng nhập số điện thoại", regex: /^(0|\+84)[0-9]{8,9}$/, invalidMsg: "Số điện thoại không hợp lệ" },
         { id: "checkout-address", msg: "Vui lòng nhập địa chỉ giao hàng" },
         { id: "checkout-payment", msg: "Vui lòng chọn phương thức thanh toán" }
       ];
 
       for (const field of fields) {
-        if (!validateField(field.id, field.msg)) {
+        if (!validateField(field.id, field.msg, field.regex, field.invalidMsg)) {
           isValid = false;
           if (!firstErrorEl) firstErrorEl = document.getElementById(field.id);
         }
