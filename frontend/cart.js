@@ -207,34 +207,90 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCart();
   prepareCheckout();
 
-  const checkoutForm = document.getElementById("form-checkout");
-  if (checkoutForm) {
-    checkoutForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+  const formCheckout = document.getElementById("form-checkout");
+  if (formCheckout) {
+    formCheckout.addEventListener("submit", async (e) => {
+      e.preventDefault(); // Ngăn trình duyệt tự động load lại trang
 
+      // Validation helpers
+      const validateField = (id, message) => {
+        const el = document.getElementById(id);
+        if (!el) return true;
+        const val = el.value.trim();
+        const errorEl = document.getElementById(id + "-error");
+        
+        if (!val) {
+          el.classList.add("border-rose-500", "border-2");
+          if (!errorEl) {
+            const err = document.createElement("div");
+            err.id = id + "-error";
+            err.className = "text-rose-500 text-xs mt-1 font-semibold";
+            err.textContent = message;
+            el.parentNode.appendChild(err);
+          } else {
+            errorEl.textContent = message;
+          }
+          
+          // Clear error on input
+          const clearErr = () => {
+            el.classList.remove("border-rose-500", "border-2");
+            const err = document.getElementById(id + "-error");
+            if (err) err.remove();
+            el.removeEventListener("input", clearErr);
+            el.removeEventListener("change", clearErr);
+          };
+          el.addEventListener("input", clearErr);
+          el.addEventListener("change", clearErr);
+          return false;
+        }
+        return true;
+      };
+
+      let isValid = true;
+      let firstErrorEl = null;
+
+      const fields = [
+        { id: "checkout-fullname", msg: "Vui lòng nhập họ tên người nhận" },
+        { id: "checkout-phone", msg: "Vui lòng nhập số điện thoại" },
+        { id: "checkout-address", msg: "Vui lòng nhập địa chỉ giao hàng" },
+        { id: "checkout-payment", msg: "Vui lòng chọn phương thức thanh toán" }
+      ];
+
+      for (const field of fields) {
+        if (!validateField(field.id, field.msg)) {
+          isValid = false;
+          if (!firstErrorEl) firstErrorEl = document.getElementById(field.id);
+        }
+      }
+
+      let cart = [];
+      try { cart = JSON.parse(localStorage.getItem("cart")) || []; } catch(e){}
+      
+      if (cart.length === 0) {
+        showToast("Giỏ hàng đang trống", "error");
+        isValid = false;
+      }
+      
+      if (!localStorage.getItem("selectedStoreId")) {
+        showToast("Vui lòng chọn chi nhánh trước khi đặt hàng", "error");
+        isValid = false;
+      }
+
+      if (!isValid) {
+        if (firstErrorEl) {
+          firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+
+      // Lấy dữ liệu từ Form
       const fullname = document.getElementById("checkout-fullname").value.trim();
       const phone = document.getElementById("checkout-phone").value.trim();
       const email = document.getElementById("checkout-email") ? document.getElementById("checkout-email").value.trim() : "";
       const address = document.getElementById("checkout-address").value.trim();
-      const payment = document.getElementById("checkout-payment") ? document.getElementById("checkout-payment").value : "cod";
+      const payment = document.getElementById("checkout-payment").value.trim();
       const cccd = document.getElementById("checkout-cccd") ? document.getElementById("checkout-cccd").value.trim() : "";
       const notes = document.getElementById("checkout-notes") ? document.getElementById("checkout-notes").value.trim() : "";
-      if (!fullname || !phone || !address || !cccd) {
-        showToast("Vui lòng nhập đầy đủ Họ tên, Số điện thoại, Địa chỉ và Số CCCD.", "error");
-        return;
-      }
-
-      let cart = [];
-      try {
-        cart = JSON.parse(localStorage.getItem("cart")) || [];
-      } catch (err) {
-        cart = [];
-      }
-
-      if (cart.length === 0) {
-        showToast("Giỏ hàng trống.", "error");
-        return;
-      }
 
       // Xây dựng mảng sản phẩm đúng định dạng cấu trúc API Backend yêu cầu
       const items = cart.map(item => ({

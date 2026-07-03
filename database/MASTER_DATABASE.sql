@@ -64,6 +64,55 @@ CREATE TABLE IF NOT EXISTS `products` (
   `store_id` INT DEFAULT NULL, -- Khóa ngoại: Nằm ở chi nhánh nào (stores)
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL, -- Nếu xóa danh mục, sản phẩm thành NULL
+CREATE TABLE IF NOT EXISTS `roles` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: Tự động tăng
+  `role_name` VARCHAR(50) NOT NULL UNIQUE -- Tên vai trò (admin, user) - Phải duy nhất
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `stores` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID cửa hàng
+  `store_name` VARCHAR(100) NOT NULL, -- Tên cửa hàng
+  `address` VARCHAR(255) NOT NULL, -- Địa chỉ chi nhánh
+  `phone` VARCHAR(20) DEFAULT NULL -- Số điện thoại chi nhánh
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID tài khoản
+  `username` VARCHAR(50) NOT NULL UNIQUE, -- Tên đăng nhập (duy nhất)
+  `password` VARCHAR(255) NOT NULL, -- Mật khẩu (sẽ được mã hóa bcrypt ở Backend)
+  `email` VARCHAR(100) NOT NULL UNIQUE, -- Địa chỉ email (duy nhất)
+  `role_id` INT NOT NULL, -- Khóa ngoại: Liên kết đến bảng vai trò (roles)
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Thời gian tạo tài khoản tự động
+  FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE -- Khóa ngoại ràng buộc
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `customers` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID khách hàng
+  `user_id` INT NOT NULL UNIQUE, -- Khóa ngoại: Liên kết 1-1 với tài khoản đăng nhập (users)
+  `full_name` VARCHAR(100) NOT NULL, -- Họ và tên khách hàng
+  `phone` VARCHAR(20) DEFAULT NULL, -- Số điện thoại khách hàng
+  `address` VARCHAR(255) DEFAULT NULL, -- Địa chỉ nhận hàng mặc định
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE -- Khóa ngoại ràng buộc
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID danh mục
+  `category_name` VARCHAR(100) NOT NULL UNIQUE, -- Tên danh mục (duy nhất)
+  `description` TEXT DEFAULT NULL -- Mô tả danh mục sản phẩm
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `products` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY, -- Khóa chính: ID sản phẩm
+  `product_name` VARCHAR(150) NOT NULL, -- Tên sản phẩm thiết bị
+  `description` TEXT DEFAULT NULL, -- Mô tả chi tiết thông số kỹ thuật sản phẩm
+  `price` DECIMAL(15, 2) NOT NULL, -- Giá bán (kiểu số thực lưu trữ chính xác tiền tệ)
+  `image_url` VARCHAR(500) DEFAULT NULL, -- Đường dẫn hình ảnh minh họa sản phẩm
+  `stock_quantity` INT NOT NULL DEFAULT 0, -- Số lượng tồn kho (mặc định bằng 0)
+  `category_id` INT DEFAULT NULL, -- Khóa ngoại: Thuộc danh mục nào (categories)
+  `store_id` INT DEFAULT NULL, -- Khóa ngoại: Nằm ở chi nhánh nào (stores)
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL, -- Nếu xóa danh mục, sản phẩm thành NULL
   FOREIGN KEY (`store_id`) REFERENCES `stores` (`id`) ON DELETE SET NULL -- Nếu xóa cửa hàng, sản phẩm thành NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -73,6 +122,13 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `total_amount` DECIMAL(15, 2) NOT NULL, -- Tổng số tiền của toàn đơn hàng
   `status` ENUM('Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled') DEFAULT 'Pending', -- Trạng thái đơn đặt hàng
   `shipping_address` VARCHAR(255) NOT NULL, -- Địa chỉ giao hàng cụ thể
+  `recipient_name` VARCHAR(255) DEFAULT NULL,
+  `recipient_phone` VARCHAR(30) DEFAULT NULL,
+  `recipient_email` VARCHAR(255) DEFAULT NULL,
+  `payment_method` VARCHAR(50) DEFAULT NULL,
+  `notes` TEXT DEFAULT NULL,
+  `cccd` VARCHAR(20) DEFAULT NULL,
+  `store_id` INT DEFAULT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE -- Xóa khách hàng xóa luôn đơn hàng
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -138,7 +194,7 @@ UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'admin'), pas
 UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'store_owner'), password = '123456', full_name = 'Chủ Cửa Hàng Demo', phone = '0902222222', hometown = 'Hà Nội', store_id = 1 WHERE username = 'owner';
 UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'manager'), password = '123456', full_name = 'Quản Lý Chi Nhánh', phone = '0903333333', hometown = 'Đà Nẵng', store_id = 2 WHERE username = 'manager';
 UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'staff'), password = '123456', full_name = 'Nhân Viên Bán Hàng', phone = '0904444444', hometown = 'Cần Thơ', store_id = 1 WHERE username = 'staff';
-UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'user'), password = '123456', full_name = 'Nguyễn Văn Khách Hàng', phone = '0905555555' WHERE username = 'user';
+UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = 'user'), password = '123456', full_name = 'Nguyễn Văn Khánh Hàng', phone = '0905555555' WHERE username = 'user';
 
 
 
@@ -219,7 +275,7 @@ INSERT IGNORE INTO products (id, product_name, description, price, image_url, st
 -- =========================
 INSERT INTO `customers` (`id`, `user_id`, `full_name`, `phone`, `address`) VALUES 
 (1, 1, 'Hệ thống Quản trị viên', '0900000001', 'Văn phòng Tổng công ty Tech Store, TP. HCM'),
-(2, 2, 'Nguyễn Văn Khách Hàng', '0912345678', '789 Đường 3/2, Quận 10, TP. HCM');
+(2, 2, 'Nguyễn Văn Khánh Hàng', '0912345678', '789 Đường 3/2, Quận 10, TP. HCM');
 
 INSERT INTO `orders` (`id`, `customer_id`, `total_amount`, `status`, `shipping_address`) VALUES 
 (1, 2, 33770000.00, 'Completed', '789 Đường 3/2, Quận 10, TP. HCM'), -- Đơn hàng hoàn thành
@@ -236,12 +292,6 @@ INSERT INTO `order_details` (`order_id`, `product_id`, `quantity`, `price`) VALU
 -- =========================
 -- 5. Sửa lỗi font tiếng Việt cho khách hàng, cửa hàng bị móp méo ký tự
 UPDATE customers SET full_name = REPLACE(full_name, 'Nguyá»…n VÄƒn KhÃ¡nh HÃ ng', 'Nguyễn Văn Khánh Hàng');
-DELETE p1 FROM products p1
-INNER JOIN products p2 
-WHERE p1.product_name = p2.product_name AND p1.id < p2.id;
-
-DELETE FROM products 
-WHERE LENGTH(product_name) < 5 
    OR image_url IS NULL 
    OR image_url = ''
    OR image_url NOT LIKE 'http%';

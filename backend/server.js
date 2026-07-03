@@ -467,7 +467,7 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
 
 // API Gửi đơn đặt hàng mới (Kiểm tra kho, tính tiền, tạo đơn và chi tiết đơn hàng)
 app.post('/api/orders', authenticateToken, async (req, res) => {
-  const { recipient_name, recipient_phone, recipient_email, shipping_address, payment_method, notes, cccd, items } = req.body; // items: [{product_id, quantity}]
+  const { recipient_name, recipient_phone, recipient_email, shipping_address, payment_method, notes, cccd, store_id, items } = req.body; // items: [{product_id, quantity}]
 
   if (!recipient_name || !recipient_phone || !shipping_address || !items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ message: 'Thông tin đặt hàng không đầy đủ hoặc không hợp lệ.' });
@@ -538,9 +538,9 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 
     // Tạo đơn hàng mới trong bảng orders với đầy đủ thông tin người nhận
     const [orderResult] = await connection.query(
-      `INSERT INTO orders (customer_id, total_amount, status, shipping_address, recipient_name, recipient_phone, recipient_email, payment_method, notes, cccd) 
-       VALUES (?, ?, "Pending", ?, ?, ?, ?, ?, ?, ?)`,
-      [customerId, totalAmount, shipping_address, recipient_name, recipient_phone, recipient_email || null, payment_method || 'cod', notes || null, cccd || null]
+      `INSERT INTO orders (customer_id, total_amount, status, shipping_address, recipient_name, recipient_phone, recipient_email, payment_method, notes, cccd, store_id) 
+       VALUES (?, ?, "Pending", ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [customerId, totalAmount, shipping_address, recipient_name, recipient_phone, recipient_email || null, payment_method || 'cod', notes || null, cccd || null, store_id || null]
     );
 
     const newOrderId = orderResult.insertId;
