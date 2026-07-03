@@ -19,13 +19,7 @@ function renderCart() {
 
   if (!container) return;
 
-  let cart = [];
-  try {
-    // Đọc giỏ hàng hiện tại lưu trong localStorage
-    cart = JSON.parse(localStorage.getItem("cart")) || [];
-  } catch (e) {
-    cart = [];
-  }
+  let cart = getCart();
 
   // Nếu giỏ hàng rỗng: Hiển thị giao diện báo rỗng & ẩn form thanh toán
   const clearCartContainer = document.getElementById("clear-cart-container");
@@ -116,12 +110,7 @@ function renderCart() {
 
 // 2. THAY ĐỔI SỐ LƯỢNG SẢN PHẨM TRONG GIỎ (+1 / -1)
 function changeQuantity(productId, delta) {
-  let cart = [];
-  try {
-    cart = JSON.parse(localStorage.getItem("cart")) || [];
-  } catch (e) {
-    cart = [];
-  }
+  let cart = getCart();
 
   const idx = cart.findIndex(item => item.product_id === productId);
   if (idx === -1) return;
@@ -137,22 +126,17 @@ function changeQuantity(productId, delta) {
     cart[idx].quantity = newQty;
   }
 
-  localStorage.setItem("cart", JSON.stringify(cart));
+  saveCart(cart);
   renderCart();
   updateCartBadge();
 }
 
 // 3. XÓA BỎ HẲN SẢN PHẨM KHỎI GIỎ HÀNG
 function removeFromCart(productId) {
-  let cart = [];
-  try {
-    cart = JSON.parse(localStorage.getItem("cart")) || [];
-  } catch (e) {
-    cart = [];
-  }
+  let cart = getCart();
 
   const newCart = cart.filter(item => item.product_id !== productId);
-  localStorage.setItem("cart", JSON.stringify(newCart));
+  saveCart(newCart);
   showToast("Đã xóa sản phẩm khỏi giỏ hàng.", "info");
   renderCart();
   if (typeof updateCartBadge === 'function') updateCartBadge();
@@ -161,7 +145,7 @@ function removeFromCart(productId) {
 // 3.5. XÓA TOÀN BỘ GIỎ HÀNG
 function clearCart() {
   if (confirm("Bạn có chắc muốn xóa toàn bộ sản phẩm khỏi giỏ hàng?")) {
-    localStorage.removeItem("cart");
+    clearCartData();
     showToast("Đã xóa toàn bộ giỏ hàng.", "info");
     renderCart();
     if (typeof updateCartBadge === 'function') updateCartBadge();
@@ -292,8 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      let cart = [];
-      try { cart = JSON.parse(localStorage.getItem("cart")) || []; } catch(e){}
+      let cart = getCart();
       
       if (cart.length === 0) {
         showToast("Giỏ hàng đang trống", "error");
@@ -355,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast("Đặt hàng thành công! Đang chuyển hướng...", "success");
         
         // Làm sạch giỏ hàng trong localStorage và server-side sau khi đặt thành công
-        localStorage.removeItem("cart");
+        clearCartData();
         try {
           await fetchWithAuth("/cart", { method: "DELETE" });
         } catch (err) {
