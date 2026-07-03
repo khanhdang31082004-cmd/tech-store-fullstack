@@ -231,7 +231,6 @@ window.selectStore = function(storeId, storeName) {
   toggleStoreModal(false);
 }
 
-// Gọi API lấy danh mục sản phẩm và nạp vào thanh lọc Sidebar
 async function loadCategories() {
   const listContainer = document.getElementById("dynamic-categories-list");
   if (!listContainer) return;
@@ -243,10 +242,15 @@ async function loadCategories() {
 
     let html = "";
     categories.forEach(cat => {
+      const isActive = currentCategoryId === cat.id;
+      const baseClass = "category-btn text-left px-3.5 py-2.5 rounded-xl transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer";
+      const activeClass = isActive ? "bg-sky-50 text-sky-700 font-black active" : "text-slate-600 font-bold hover:bg-slate-100 hover:text-slate-900";
+      
       html += `
         <button onclick="filterCategory(${cat.id}, '${cat.category_name}')" 
                 id="cat-btn-${cat.id}"
-                class="category-btn text-left px-3.5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer" style="font-size: 16px;">
+                data-category-id="${cat.id}"
+                class="${baseClass} ${activeClass}" style="font-size: 16px;">
           <span>${cat.category_name}</span>
           <span class="w-1.5 h-1.5 rounded-full bg-slate-350"></span>
         </button>
@@ -266,13 +270,14 @@ function filterCategory(catId, catName = "Tất cả sản phẩm") {
   // Xóa class active của các nút cũ và thiết lập cho nút được click mới
   const allButtons = document.querySelectorAll(".category-btn, #cat-btn-all");
   allButtons.forEach(btn => {
-    btn.className = "category-btn text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer";
+    btn.classList.remove("bg-sky-50", "text-sky-700", "font-black", "active");
+    btn.classList.add("text-slate-600", "font-bold", "hover:bg-slate-100", "hover:text-slate-900");
   });
 
   const activeBtn = document.getElementById(catId ? `cat-btn-${catId}` : "cat-btn-all");
   if (activeBtn) {
-    activeBtn.className = "text-left px-3.5 py-2.5 rounded-xl font-black bg-sky-50 text-sky-700 hover:bg-sky-100 transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer";
-    activeBtn.style.fontSize = "16px";
+    activeBtn.classList.remove("text-slate-600", "font-bold", "hover:bg-slate-100", "hover:text-slate-900");
+    activeBtn.classList.add("bg-sky-50", "text-sky-700", "font-black", "active");
   }
 
   document.getElementById("section-title").textContent = catName;
