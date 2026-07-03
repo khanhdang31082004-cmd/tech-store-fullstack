@@ -191,9 +191,26 @@ async function prepareCheckout() {
     const response = await fetchWithAuth("/profile");
     if (response.ok) {
       const profile = await response.json();
-      document.getElementById("checkout-fullname").value = profile.full_name || "";
-      document.getElementById("checkout-phone").value = profile.phone || "";
-      document.getElementById("checkout-address").value = profile.address || "";
+      
+      const hasFontError = (str) => {
+        if (!str) return false;
+        const mojibake = ["Ã", "Ä", "áº", "Æ°", "", "á»"];
+        return mojibake.some(m => str.includes(m));
+      };
+
+      if (!hasFontError(profile.full_name)) {
+        document.getElementById("checkout-fullname").value = profile.full_name || "";
+      } else {
+        document.getElementById("checkout-fullname").value = "";
+      }
+
+      if (!hasFontError(profile.phone)) {
+        document.getElementById("checkout-phone").value = profile.phone || "";
+      } else {
+        document.getElementById("checkout-phone").value = "";
+      }
+
+      document.getElementById("checkout-address").value = "";
     }
   } catch (error) {
     console.error("Lỗi lấy profile cho checkout:", error);
