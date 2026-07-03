@@ -213,87 +213,107 @@ document.addEventListener("DOMContentLoaded", () => {
     formCheckout.addEventListener("submit", async (e) => {
       e.preventDefault(); // Ngăn trình duyệt tự động load lại trang
 
-      // Validation helpers
-      const validateField = (id, message, validatorRegex = null, invalidMessage = null) => {
-        const el = document.getElementById(id);
-        if (!el) return true;
-        const val = el.value.trim();
-        const errorEl = document.getElementById(id + "-error");
+      const showFieldError = (fieldId, message) => {
+        const el = document.getElementById(fieldId);
+        if (!el) return;
+        el.classList.add("input-error", "shake");
+        setTimeout(() => el.classList.remove("shake"), 300);
         
-        let errorMsg = null;
-        if (!val) {
-          errorMsg = message;
-        } else if (validatorRegex && !validatorRegex.test(val)) {
-          errorMsg = invalidMessage;
+        let errEl = document.getElementById(fieldId + "-error");
+        if (!errEl) {
+          errEl = document.createElement("div");
+          errEl.id = fieldId + "-error";
+          errEl.className = "error-message";
+          el.parentNode.appendChild(errEl);
         }
-        
-        if (errorMsg) {
-          el.classList.add("input-error", "shake");
-          
-          setTimeout(() => {
-            el.classList.remove("shake");
-          }, 300);
+        errEl.textContent = message;
 
-          if (!errorEl) {
-            const err = document.createElement("div");
-            err.id = id + "-error";
-            err.className = "error-message";
-            err.textContent = errorMsg;
-            el.parentNode.appendChild(err);
-          } else {
-            errorEl.textContent = errorMsg;
-          }
-          
-          // Clear error on input
-          const clearErr = () => {
-            el.classList.remove("input-error");
-            const err = document.getElementById(id + "-error");
-            if (err) err.remove();
-            el.removeEventListener("input", clearErr);
-            el.removeEventListener("change", clearErr);
-          };
-          el.addEventListener("input", clearErr);
-          el.addEventListener("change", clearErr);
-          return false;
-        }
-        return true;
+        const clearErr = () => {
+          clearFieldError(fieldId);
+          el.removeEventListener("input", clearErr);
+          el.removeEventListener("change", clearErr);
+        };
+        el.addEventListener("input", clearErr);
+        el.addEventListener("change", clearErr);
       };
 
-      let isValid = true;
-      let firstErrorEl = null;
+      const clearFieldError = (fieldId) => {
+        const el = document.getElementById(fieldId);
+        if (el) el.classList.remove("input-error");
+        const errEl = document.getElementById(fieldId + "-error");
+        if (errEl) errEl.remove();
+      };
 
-      const fields = [
-        { id: "checkout-fullname", msg: "Vui lòng nhập họ tên người nhận" },
-        { id: "checkout-phone", msg: "Vui lòng nhập số điện thoại", regex: /^(0|\+84)[0-9]{8,9}$/, invalidMsg: "Số điện thoại không hợp lệ" },
-        { id: "checkout-address", msg: "Vui lòng nhập địa chỉ giao hàng" },
-        { id: "checkout-payment", msg: "Vui lòng chọn phương thức thanh toán" }
-      ];
+      const clearAllCheckoutErrors = () => {
+        const fields = ["checkout-fullname", "checkout-phone", "checkout-email", "checkout-address", "checkout-payment", "checkout-cccd"];
+        fields.forEach(f => clearFieldError(f));
+      };
 
-      for (const field of fields) {
-        if (!validateField(field.id, field.msg, field.regex, field.invalidMsg)) {
-          isValid = false;
-          if (!firstErrorEl) firstErrorEl = document.getElementById(field.id);
+      const validateCheckoutForm = () => {
+        clearAllCheckoutErrors();
+        let isValid = true;
+        let firstErrorEl = null;
+
+        const checkField = (id, condition, message) => {
+          if (!condition) {
+            isValid = false;
+            showFieldError(id, message);
+            if (!firstErrorEl) firstErrorEl = document.getElementById(id);
+          }
+        };
+
+        const fullname = document.getElementById("checkout-fullname")?.value.trim() || "";
+        checkField("checkout-fullname", fullname !== "", "Vui lòng nhập họ tên người nhận");
+        if (fullname !== "") {
+          const words = fullname.split(/\\s+/);
+          const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỮỰỲỴÝỶỸửữựỳỵỷỹ\\s]+$/;
+          checkField("checkout-fullname", words.length >= 2 && nameRegex.test(fullname), "Họ tên chỉ được chứa chữ cái và khoảng trắng");
         }
-      }
 
-      let cart = getCart();
-      
-      if (cart.length === 0) {
-        showToast("Giỏ hàng đang trống", "error");
-        isValid = false;
-      }
-      
-      if (!localStorage.getItem("selectedStoreId")) {
-        showToast("Vui lòng chọn chi nhánh trước khi đặt hàng", "error");
-        isValid = false;
-      }
+        const phone = document.getElementById("checkout-phone")?.value.trim() || "";
+        checkField("checkout-phone", phone !== "", "Vui lòng nhập số điện thoại");
+        if (phone !== "") {
+          checkField("checkout-phone", /^0\\d{9}$/.test(phone), "Số điện thoại phải gồm 10 số và bắt đầu bằng 0");
+        }
 
-      if (!isValid) {
-        if (firstErrorEl) {
+        const email = document.getElementById("checkout-email")?.value.trim() || "";
+        if (email !== "") {
+          checkField("checkout-email", /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email), "Email không hợp lệ");
+        }
+
+        const address = document.getElementById("checkout-address")?.value.trim() || "";
+        checkField("checkout-address", address !== "", "Vui lòng nhập địa chỉ giao hàng");
+        if (address !== "") {
+          checkField("checkout-address", address.length >= 10, "Địa chỉ cần ghi rõ số nhà, đường, phường/xã, quận/huyện");
+        }
+
+        const payment = document.getElementById("checkout-payment")?.value.trim() || "";
+        checkField("checkout-payment", payment !== "", "Vui lòng chọn phương thức thanh toán");
+
+        const cccd = document.getElementById("checkout-cccd")?.value.trim() || "";
+        if (cccd !== "") {
+          checkField("checkout-cccd", /^\\d{12}$/.test(cccd), "CCCD phải gồm đúng 12 số");
+        }
+
+        let cart = getCart();
+        if (cart.length === 0) {
+          showToast("Giỏ hàng đang trống", "error");
+          isValid = false;
+        }
+
+        if (!localStorage.getItem("selectedStoreId")) {
+          showToast("Vui lòng chọn chi nhánh trước khi đặt hàng", "error");
+          isValid = false;
+        }
+
+        if (!isValid && firstErrorEl) {
           firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        return;
-      }
+
+        return isValid;
+      };
+
+      if (!validateCheckoutForm()) return;
 
       // Lấy dữ liệu từ Form
       const fullname = document.getElementById("checkout-fullname").value.trim();
