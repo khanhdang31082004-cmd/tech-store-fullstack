@@ -4,6 +4,11 @@ if (!localStorage.getItem("token")) {
   setTimeout(() => {
     window.location.href = "auth.html?mode=login";
   }, 1000);
+} else if (!localStorage.getItem("selectedStoreId")) {
+  showToast("Vui lòng chọn chi nhánh trước khi xem giỏ hàng.", "warning");
+  setTimeout(() => {
+    window.location.href = "index.html";
+  }, 1000);
 }
 
 // 1. KẾT XUẤT THÔNG TIN CÁC SẢN PHẨM TRONG GIỎ HÀNG LÊN MÀN HÌNH

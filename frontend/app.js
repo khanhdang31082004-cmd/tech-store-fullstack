@@ -346,6 +346,12 @@ function addToCart(productId, name, price, imageUrl, productStoreId, productStor
   const selectedStoreId = localStorage.getItem("selectedStoreId");
   const selectedStoreName = localStorage.getItem("selectedStoreName");
 
+  if (!selectedStoreId) {
+    showToast("Vui lòng chọn chi nhánh trước khi thêm sản phẩm vào giỏ hàng.", "warning");
+    if (typeof toggleStoreModal === 'function') toggleStoreModal(true);
+    return;
+  }
+
   if (selectedStoreId && productStoreId && productStoreId != selectedStoreId) {
     showToast("Sản phẩm này thuộc chi nhánh khác. Vui lòng chuyển chi nhánh hoặc làm trống giỏ hàng.", "error");
     return;
@@ -419,6 +425,13 @@ window.toggleCartDrawer = function(state) {
   if (!drawer || !overlay) return;
 
   if (state) {
+    const selectedStoreId = localStorage.getItem("selectedStoreId");
+    if (!selectedStoreId) {
+      showToast("Vui lòng chọn chi nhánh trước khi xem giỏ hàng.", "warning");
+      toggleStoreModal(true);
+      return;
+    }
+
     drawer.classList.remove("translate-x-full");
     overlay.classList.remove("hidden");
     renderCartDrawer();
