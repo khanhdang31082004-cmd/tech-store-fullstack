@@ -49,6 +49,42 @@ window.clearCartData = function() {
   localStorage.removeItem(getCurrentUserKey());
 };
 
+// Tự động kiểm tra và dọn dẹp các sản phẩm đã bị xóa khỏi hệ thống trong giỏ hàng
+window.validateAndCleanCart = async function() {
+  let cart = getCart();
+  if (!cart || cart.length === 0) return false;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/products`);
+    if (!response.ok) return false;
+    const products = await response.json();
+    const validProductIds = new Set(products.map(p => p.id));
+
+    let removedAny = false;
+    const newCart = cart.filter(item => {
+      if (!validProductIds.has(item.product_id)) {
+        removedAny = true;
+        return false; // Tự động remove khỏi cart nếu sản phẩm không tồn tại
+      }
+      return true;
+    });
+
+    if (removedAny) {
+      saveCart(newCart); // Cập nhật localStorage
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          await fetchWithAuth("/cart/clean-orphans", { method: "POST" }); // Cập nhật database
+        } catch (e) {}
+      }
+      return true;
+    }
+  } catch (error) {
+    // Không log lỗi hay throw error để không làm gián đoạn người dùng
+  }
+  return false;
+};
+
 // =========================================================================
 // 2. CÁC HÀM TIỆN ÍCH DÙNG CHUNG TRÊN TOÀN GIAO DIỆN
 // =========================================================================
@@ -425,7 +461,7 @@ function addToCart(productId, name, price, imageUrl, productStoreId, productStor
     fetchWithAuth("/cart", {
       method: "POST",
       body: JSON.stringify({ product_id: productId, quantity: 1 })
-    }).catch(err => console.error("Lỗi đồng bộ giỏ hàng lên server:", err));
+    }).catch(() => {});
   }
 }
 
@@ -459,6 +495,14 @@ window.toggleCartDrawer = function(state) {
 
     drawer.classList.remove("translate-x-full");
     overlay.classList.remove("hidden");
+    if (typeof window.validateAndCleanCart === 'function') {
+      window.validateAndCleanCart().then(cleaned => {
+        if (cleaned) {
+          updateCartBadge();
+          renderCartDrawer();
+        }
+      });
+    }
     renderCartDrawer();
   } else {
     drawer.classList.add("translate-x-full");

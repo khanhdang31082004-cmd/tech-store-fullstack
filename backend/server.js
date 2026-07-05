@@ -510,7 +510,9 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
       );
 
       if (products.length === 0) {
-        throw new Error(`Sản phẩm (ID: ${item.product_id}) không còn bán.`);
+        // Tự động xóa khỏi giỏ hàng trong DB nếu sản phẩm không còn tồn tại
+        await connection.query('DELETE FROM cart WHERE user_id = ? AND product_id = ?', [req.user.id, item.product_id]);
+        continue; // Bỏ qua sản phẩm không tồn tại, không báo lỗi làm gián đoạn người dùng
       }
 
       const product = products[0];
@@ -534,6 +536,15 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
         'UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?',
         [item.quantity, product.id]
       );
+    }
+
+    if (orderItemsDetails.length === 0) {
+      await connection.rollback();
+      connection.release();
+      return res.status(400).json({ 
+        message: 'Sản phẩm trong giỏ hàng không còn tồn tại hoặc đã ngừng kinh doanh.',
+        cart_updated: true 
+      });
     }
 
     // Tạo đơn hàng mới trong bảng orders với đầy đủ thông tin người nhận
@@ -720,6 +731,7 @@ app.delete('/api/admin/products/:id', authenticateToken, isManager, async (req, 
       return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Bạn không thể xóa sản phẩm của chi nhánh khác.' });
     }
 
+    await pool.query('DELETE FROM cart WHERE product_id = ?', [productId]);
     await pool.query('DELETE FROM products WHERE id = ?', [productId]);
     return res.status(200).json({ message: 'Xóa sản phẩm thành công!' });
   } catch (error) {
@@ -1070,6 +1082,9 @@ app.get('/api/admin/dashboard', authenticateToken, isStaff, async (req, res) => 
 // Lấy danh sách sản phẩm trong giỏ hàng của user
 app.get('/api/cart', authenticateToken, async (req, res) => {
   try {
+    // Tự động dọn dẹp các sản phẩm không còn tồn tại trong bảng cart
+    await pool.query('DELETE FROM cart WHERE user_id = ? AND product_id NOT IN (SELECT id FROM products)', [req.user.id]);
+
     const [cartItems] = await pool.query(
       `SELECT c.id, c.product_id, c.quantity, p.product_name, p.price, p.image_url, p.stock_quantity, cat.category_name
        FROM cart c
@@ -1084,6 +1099,16 @@ app.get('/api/cart', authenticateToken, async (req, res) => {
   }
 });
 
+// API Dọn dẹp sản phẩm không tồn tại khỏi giỏ hàng server-side
+app.post('/api/cart/clean-orphans', authenticateToken, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM cart WHERE user_id = ? AND product_id NOT IN (SELECT id FROM products)', [req.user.id]);
+    return res.status(200).json({ message: 'Đã dọn dẹp giỏ hàng thành công!' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi dọn dẹp giỏ hàng.', error: error.message });
+  }
+});
+
 // Thêm sản phẩm vào giỏ hàng
 app.post('/api/cart', authenticateToken, async (req, res) => {
   const { product_id, quantity } = req.body;
@@ -1095,7 +1120,7 @@ app.post('/api/cart', authenticateToken, async (req, res) => {
   try {
     const [productCheck] = await pool.query('SELECT stock_quantity FROM products WHERE id = ?', [product_id]);
     if (productCheck.length === 0) {
-      return res.status(404).json({ message: 'Sản phẩm không tồn tại.' });
+      return res.status(404).json({ message: 'Sản phẩm không tồn tại hoặc đã ngừng bán.', product_not_found: true });
     }
 
     const [existing] = await pool.query('SELECT id, quantity FROM cart WHERE user_id = ? AND product_id = ?', [req.user.id, product_id]);
@@ -1136,6 +1161,11 @@ app.put('/api/cart/:id', authenticateToken, async (req, res) => {
 
     const productId = cartCheck[0].product_id;
     const [productCheck] = await pool.query('SELECT stock_quantity FROM products WHERE id = ?', [productId]);
+
+    if (productCheck.length === 0) {
+      await pool.query('DELETE FROM cart WHERE id = ?', [cartItemId]);
+      return res.status(404).json({ message: 'Sản phẩm không còn kinh doanh và đã được xóa khỏi giỏ hàng.', product_not_found: true });
+    }
 
     if (parseInt(quantity) > productCheck[0].stock_quantity) {
       return res.status(400).json({ message: `Vượt quá số lượng tồn kho (Còn lại: ${productCheck[0].stock_quantity})` });

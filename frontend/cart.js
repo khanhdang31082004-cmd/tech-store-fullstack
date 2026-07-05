@@ -197,14 +197,17 @@ async function prepareCheckout() {
       document.getElementById("checkout-address").value = "";
     }
   } catch (error) {
-    console.error("Lỗi lấy profile cho checkout:", error);
+    // Không log lỗi để tránh console error
   }
 }
 
 // =========================================================================
 // 5. GỬI ĐƠN HÀNG LÊN SERVER BACKEND (SUBMIT CHECKOUT)
 // =========================================================================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  if (typeof window.validateAndCleanCart === 'function') {
+    await window.validateAndCleanCart();
+  }
   renderCart();
   prepareCheckout();
 
@@ -334,7 +337,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!validateCheckoutForm()) return;
 
+      if (typeof window.validateAndCleanCart === 'function') {
+        const cleaned = await window.validateAndCleanCart();
+        if (cleaned) {
+          renderCart();
+          if (typeof updateCartBadge === 'function') updateCartBadge();
+        }
+      }
+
       const cart = getCart();
+      if (cart.length === 0) return;
 
       // Lấy dữ liệu từ Form
       const fullname = document.getElementById("checkout-fullname").value.trim();
@@ -372,7 +384,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const data = await response.json();
 
-        if (!response.ok) throw new Error(data.message || "Đặt hàng thất bại.");
+        if (!response.ok) {
+          if (data && data.cart_updated) {
+            if (typeof window.validateAndCleanCart === 'function') {
+              await window.validateAndCleanCart();
+            }
+            renderCart();
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+            return; // Không hiển thị toast lỗi theo yêu cầu
+          }
+          throw new Error(data.message || "Đặt hàng thất bại.");
+        }
 
         showToast("Đặt hàng thành công! Đang chuyển hướng...", "success");
         
@@ -380,9 +402,7 @@ document.addEventListener("DOMContentLoaded", () => {
         clearCartData();
         try {
           await fetchWithAuth("/cart", { method: "DELETE" });
-        } catch (err) {
-          console.error("Lỗi xóa giỏ hàng server:", err);
-        }
+        } catch (err) {}
         
         renderCart();
         updateCartBadge();
@@ -393,7 +413,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1500);
 
       } catch (error) {
-        console.error("Lỗi đặt hàng:", error);
         showToast(error.message, "error");
       }
     });
