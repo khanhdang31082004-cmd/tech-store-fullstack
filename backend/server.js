@@ -63,11 +63,92 @@ try {
   console.error('Lỗi cấu hình database pool:', err.message);
 }
 
+// Hàm tự động kiểm tra và bổ sung cột/bảng bị thiếu trong MySQL giúp tự động khắc phục lỗi Unknown column
+async function autoMigrateDatabase(conn = null) {
+  let releaseNeeded = false;
+  let connection = conn;
+  try {
+    if (!connection) {
+      connection = await pool.getConnection();
+      releaseNeeded = true;
+    }
+
+    // 1. Cập nhật bảng orders
+    const orderCols = [
+      { name: 'recipient_name', def: 'VARCHAR(255) DEFAULT NULL' },
+      { name: 'recipient_phone', def: 'VARCHAR(50) DEFAULT NULL' },
+      { name: 'recipient_email', def: 'VARCHAR(255) DEFAULT NULL' },
+      { name: 'payment_method', def: 'VARCHAR(50) DEFAULT "cod"' },
+      { name: 'notes', def: 'TEXT DEFAULT NULL' },
+      { name: 'cccd', def: 'VARCHAR(50) DEFAULT NULL' },
+      { name: 'store_id', def: 'INT DEFAULT NULL' }
+    ];
+    for (const col of orderCols) {
+      try {
+        const [cols] = await connection.query(`SHOW COLUMNS FROM orders LIKE '${col.name}'`);
+        if (cols.length === 0) {
+          await connection.query(`ALTER TABLE orders ADD COLUMN ${col.name} ${col.def}`);
+          console.log(`+ Đã tự động thêm cột "${col.name}" vào bảng orders.`);
+        }
+      } catch (e) {}
+    }
+
+    // 2. Cập nhật bảng users
+    const userCols = [
+      { name: 'store_id', def: 'INT DEFAULT NULL' },
+      { name: 'is_active', def: 'TINYINT DEFAULT 1' },
+      { name: 'full_name', def: 'VARCHAR(255) DEFAULT NULL' },
+      { name: 'phone', def: 'VARCHAR(50) DEFAULT NULL' },
+      { name: 'address', def: 'TEXT DEFAULT NULL' }
+    ];
+    for (const col of userCols) {
+      try {
+        const [cols] = await connection.query(`SHOW COLUMNS FROM users LIKE '${col.name}'`);
+        if (cols.length === 0) {
+          await connection.query(`ALTER TABLE users ADD COLUMN ${col.name} ${col.def}`);
+          console.log(`+ Đã tự động thêm cột "${col.name}" vào bảng users.`);
+        }
+      } catch (e) {}
+    }
+
+    // 3. Cập nhật bảng stores
+    try {
+      const [storeCols] = await connection.query(`SHOW COLUMNS FROM stores LIKE 'status'`);
+      if (storeCols.length === 0) {
+        await connection.query(`ALTER TABLE stores ADD COLUMN status ENUM('pending', 'active', 'suspended') DEFAULT 'active'`);
+        console.log(`+ Đã tự động thêm cột "status" vào bảng stores.`);
+      }
+    } catch (e) {}
+
+    // 4. Tạo bảng cart nếu chưa tồn tại
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS cart (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        product_id INT NOT NULL,
+        quantity INT NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
+        UNIQUE KEY user_product (user_id, product_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `).catch(() => {});
+
+  } catch (error) {
+    console.error('Lỗi khi kiểm tra auto-migrate DB:', error.message);
+  } finally {
+    if (releaseNeeded && connection) {
+      connection.release();
+    }
+  }
+}
+
 // Hàm kiểm tra kết nối cơ sở dữ liệu khi bắt đầu chạy Server
 async function testDbConnection() {
   try {
     const connection = await pool.getConnection(); // Lấy thử 1 kết nối ra
     console.log('Kết nối MySQL Database thành công!');
+    await autoMigrateDatabase(connection); // Tự động đồng bộ và nâng cấp schema
     connection.release(); // Trả lại kết nối vào Pool rảnh
   } catch (error) {
     console.error('LỖI KẾT NỐI DATABASE MYSQL:');
@@ -548,11 +629,26 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     }
 
     // Tạo đơn hàng mới trong bảng orders với đầy đủ thông tin người nhận
-    const [orderResult] = await connection.query(
-      `INSERT INTO orders (customer_id, total_amount, status, shipping_address, recipient_name, recipient_phone, recipient_email, payment_method, notes, store_id) 
-       VALUES (?, ?, "Pending", ?, ?, ?, ?, ?, ?, ?)`,
-      [customerId, totalAmount, shipping_address, recipient_name, recipient_phone, recipient_email || null, payment_method || 'cod', notes || null, store_id || null]
-    );
+    let orderResult;
+    try {
+      [orderResult] = await connection.query(
+        `INSERT INTO orders (customer_id, total_amount, status, shipping_address, recipient_name, recipient_phone, recipient_email, payment_method, notes, store_id) 
+         VALUES (?, ?, "Pending", ?, ?, ?, ?, ?, ?, ?)`,
+        [customerId, totalAmount, shipping_address, recipient_name, recipient_phone, recipient_email || null, payment_method || 'cod', notes || null, store_id || null]
+      );
+    } catch (insertErr) {
+      if (insertErr.code === 'ER_BAD_FIELD_ERROR' || (insertErr.message && insertErr.message.includes('Unknown column'))) {
+        console.log('Phát hiện thiếu cột trong bảng orders khi checkout, đang tự động đồng bộ schema...');
+        await autoMigrateDatabase(connection);
+        [orderResult] = await connection.query(
+          `INSERT INTO orders (customer_id, total_amount, status, shipping_address, recipient_name, recipient_phone, recipient_email, payment_method, notes, store_id) 
+           VALUES (?, ?, "Pending", ?, ?, ?, ?, ?, ?, ?)`,
+          [customerId, totalAmount, shipping_address, recipient_name, recipient_phone, recipient_email || null, payment_method || 'cod', notes || null, store_id || null]
+        );
+      } else {
+        throw insertErr;
+      }
+    }
 
     const newOrderId = orderResult.insertId;
 
