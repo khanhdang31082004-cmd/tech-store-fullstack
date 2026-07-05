@@ -142,7 +142,6 @@ async function loadOrders() {
               ${order.recipient_email ? `<div><strong class="text-slate-700">Email:</strong> ${order.recipient_email}</div>` : ''}
               <div><strong class="text-slate-700">Địa chỉ giao:</strong> ${order.shipping_address}</div>
               <div><strong class="text-slate-700">Hình thức thanh toán:</strong> ${order.payment_method === 'cod' ? 'Thanh toán COD khi nhận hàng' : order.payment_method === 'bank_transfer' ? 'Chuyển khoản ngân hàng' : 'Ví điện tử'}</div>
-              ${order.cccd ? `<div><strong class="text-slate-700">Số CCCD:</strong> ${order.cccd}</div>` : ''}
               ${order.notes ? `<div class="italic text-amber-600"><strong class="text-slate-700">Ghi chú:</strong> ${order.notes}</div>` : ''}
             </div>
             <div class="text-right flex items-center gap-2">

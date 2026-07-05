@@ -210,110 +210,131 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const formCheckout = document.getElementById("form-checkout");
   if (formCheckout) {
+    const showFieldError = (fieldId, message) => {
+      const el = document.getElementById(fieldId);
+      if (!el) return;
+      el.classList.add("input-error", "shake");
+      setTimeout(() => el.classList.remove("shake"), 300);
+      
+      let errEl = document.getElementById(fieldId + "-error");
+      if (!errEl) {
+        errEl = document.createElement("div");
+        errEl.id = fieldId + "-error";
+        errEl.className = "text-rose-500 text-[10px] font-bold mt-1.5 error-message-shake";
+        el.parentNode.appendChild(errEl);
+      }
+      errEl.textContent = message;
+    };
+
+    const clearFieldError = (fieldId) => {
+      const el = document.getElementById(fieldId);
+      if (el) el.classList.remove("input-error");
+      const errEl = document.getElementById(fieldId + "-error");
+      if (errEl) errEl.remove();
+    };
+
+    const validateField = (id) => {
+      clearFieldError(id);
+      const el = document.getElementById(id);
+      if (!el) return true;
+      const val = el.value.trim();
+
+      if (id === "checkout-fullname") {
+        if (val === "") {
+          showFieldError(id, "Vui lòng nhập họ tên người nhận");
+          return false;
+        }
+        const nameRegex = /^[A-Za-zÀ-ỹà-ỹ\s]{2,100}$/;
+        if (!nameRegex.test(val)) {
+          showFieldError(id, "Họ tên chỉ được chứa chữ cái và khoảng trắng");
+          return false;
+        }
+      }
+
+      if (id === "checkout-phone") {
+        if (val === "") {
+          showFieldError(id, "Vui lòng nhập số điện thoại");
+          return false;
+        }
+        const phoneRegex = /^0\d{9}$/;
+        if (!phoneRegex.test(val)) {
+          showFieldError(id, "Số điện thoại phải bắt đầu bằng số 0 và gồm đúng 10 chữ số");
+          return false;
+        }
+      }
+
+      if (id === "checkout-email") {
+        if (val !== "") {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(val)) {
+            showFieldError(id, "Email không hợp lệ");
+            return false;
+          }
+        }
+      }
+
+      if (id === "checkout-address") {
+        if (val === "") {
+          showFieldError(id, "Vui lòng nhập địa chỉ giao hàng");
+          return false;
+        }
+      }
+
+      if (id === "checkout-payment") {
+        if (val === "") {
+          showFieldError(id, "Vui lòng chọn phương thức thanh toán");
+          return false;
+        }
+      }
+
+      return true;
+    };
+
+    const fieldsToValidate = ["checkout-fullname", "checkout-phone", "checkout-email", "checkout-address", "checkout-payment"];
+
+    // Chỉ validate khi blur hoặc submit (không validate khi đang gõ)
+    fieldsToValidate.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener("blur", () => validateField(id));
+      }
+    });
+
+    const validateCheckoutForm = () => {
+      let isValid = true;
+      let firstErrorEl = null;
+
+      fieldsToValidate.forEach(id => {
+        if (!validateField(id)) {
+          isValid = false;
+          if (!firstErrorEl) firstErrorEl = document.getElementById(id);
+        }
+      });
+
+      const cart = getCart();
+      if (cart.length === 0) {
+        showToast("Giỏ hàng đang trống", "error");
+        isValid = false;
+      }
+
+      if (!localStorage.getItem("selectedStoreId")) {
+        showToast("Vui lòng chọn chi nhánh trước khi đặt hàng", "error");
+        isValid = false;
+      }
+
+      if (!isValid && firstErrorEl) {
+        firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      return isValid;
+    };
+
     formCheckout.addEventListener("submit", async (e) => {
       e.preventDefault(); // Ngăn trình duyệt tự động load lại trang
 
-      const showFieldError = (fieldId, message) => {
-        const el = document.getElementById(fieldId);
-        if (!el) return;
-        el.classList.add("input-error", "shake");
-        setTimeout(() => el.classList.remove("shake"), 300);
-        
-        let errEl = document.getElementById(fieldId + "-error");
-        if (!errEl) {
-          errEl = document.createElement("div");
-          errEl.id = fieldId + "-error";
-          errEl.className = "error-message";
-          el.parentNode.appendChild(errEl);
-        }
-        errEl.textContent = message;
-
-        const clearErr = () => {
-          clearFieldError(fieldId);
-          el.removeEventListener("input", clearErr);
-          el.removeEventListener("change", clearErr);
-        };
-        el.addEventListener("input", clearErr);
-        el.addEventListener("change", clearErr);
-      };
-
-      const clearFieldError = (fieldId) => {
-        const el = document.getElementById(fieldId);
-        if (el) el.classList.remove("input-error");
-        const errEl = document.getElementById(fieldId + "-error");
-        if (errEl) errEl.remove();
-      };
-
-      const clearAllCheckoutErrors = () => {
-        const fields = ["checkout-fullname", "checkout-phone", "checkout-email", "checkout-address", "checkout-payment", "checkout-cccd"];
-        fields.forEach(f => clearFieldError(f));
-      };
-
-      const validateCheckoutForm = () => {
-        clearAllCheckoutErrors();
-        let isValid = true;
-        let firstErrorEl = null;
-
-        const checkField = (id, condition, message) => {
-          if (!condition) {
-            isValid = false;
-            showFieldError(id, message);
-            if (!firstErrorEl) firstErrorEl = document.getElementById(id);
-          }
-        };
-
-        const fullname = document.getElementById("checkout-fullname")?.value.trim() || "";
-        checkField("checkout-fullname", fullname !== "", "Vui lòng nhập họ tên người nhận");
-        if (fullname !== "") {
-          const words = fullname.split(/\\s+/);
-          const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỮỰỲỴÝỶỸửữựỳỵỷỹ\\s]+$/;
-          checkField("checkout-fullname", words.length >= 2 && nameRegex.test(fullname), "Họ tên chỉ được chứa chữ cái và khoảng trắng");
-        }
-
-        const phone = document.getElementById("checkout-phone")?.value.trim() || "";
-        checkField("checkout-phone", phone !== "", "Vui lòng nhập số điện thoại");
-        if (phone !== "") {
-          checkField("checkout-phone", /^0\\d{9}$/.test(phone), "Số điện thoại phải gồm 10 số và bắt đầu bằng 0");
-        }
-
-        const email = document.getElementById("checkout-email")?.value.trim() || "";
-        if (email !== "") {
-          checkField("checkout-email", /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email), "Email không hợp lệ");
-        }
-
-        const address = document.getElementById("checkout-address")?.value.trim() || "";
-        checkField("checkout-address", address !== "", "Vui lòng nhập địa chỉ giao hàng");
-        if (address !== "") {
-          checkField("checkout-address", address.length >= 10, "Địa chỉ cần ghi rõ số nhà, đường, phường/xã, quận/huyện");
-        }
-
-        const payment = document.getElementById("checkout-payment")?.value.trim() || "";
-        checkField("checkout-payment", payment !== "", "Vui lòng chọn phương thức thanh toán");
-
-        const cccd = document.getElementById("checkout-cccd")?.value.trim() || "";
-        if (cccd !== "") {
-          checkField("checkout-cccd", /^\\d{12}$/.test(cccd), "CCCD phải gồm đúng 12 số");
-        }
-
-        let cart = getCart();
-        if (cart.length === 0) {
-          showToast("Giỏ hàng đang trống", "error");
-          isValid = false;
-        }
-
-        if (!localStorage.getItem("selectedStoreId")) {
-          showToast("Vui lòng chọn chi nhánh trước khi đặt hàng", "error");
-          isValid = false;
-        }
-
-        if (!isValid && firstErrorEl) {
-          firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        return isValid;
-      };
-
       if (!validateCheckoutForm()) return;
+
+      const cart = getCart();
 
       // Lấy dữ liệu từ Form
       const fullname = document.getElementById("checkout-fullname").value.trim();
@@ -321,7 +342,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = document.getElementById("checkout-email") ? document.getElementById("checkout-email").value.trim() : "";
       const address = document.getElementById("checkout-address").value.trim();
       const payment = document.getElementById("checkout-payment").value.trim();
-      const cccd = document.getElementById("checkout-cccd") ? document.getElementById("checkout-cccd").value.trim() : "";
       const notes = document.getElementById("checkout-notes") ? document.getElementById("checkout-notes").value.trim() : "";
 
       // Xây dựng mảng sản phẩm đúng định dạng cấu trúc API Backend yêu cầu
@@ -344,7 +364,6 @@ document.addEventListener("DOMContentLoaded", () => {
             shipping_address: fullShippingAddress,
             payment_method: payment,
             notes: notes || null,
-            cccd: cccd || null,
             store_id: localStorage.getItem("selectedStoreId") ? parseInt(localStorage.getItem("selectedStoreId")) : null,
             store_name: localStorage.getItem("selectedStoreName") || null,
             items: items

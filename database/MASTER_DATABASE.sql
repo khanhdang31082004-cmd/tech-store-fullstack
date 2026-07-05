@@ -256,7 +256,7 @@ INSERT IGNORE INTO products (id, product_name, description, price, image_url, st
 (31, 'Tai nghe Apple AirPods Max', 'Vỏ nhôm cao cấp, đệm tai memory foam, chip H1, ANC, Spatial Audio 3D.', 2000000, 'https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?w=600', 55, 7, 1),
 (32, 'Tai nghe HyperX Cloud III Wired', 'Màng loa 53mm nghiêng 10°, âm thanh vòm DTS 7.1, mic tách rời khử ồn AI.', 18000000, 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600', 40, 7, 2),
 (47, 'Tai nghe SteelSeries Arctis Nova 7', 'Không dây đa nền tảng PC/Mac/PS/Switch, pin 38 giờ, 2.4GHz + Bluetooth.', 5000000, 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=600', 49, 7, 1),
-(48, 'Tai nghe Marshall Monitor II ANC', 'ANC hybrid tùy chỉnh, driver 40mm Marshall, pin 30 giờ ANC on, âm trầm căng.', 11000000, 'https://images.unsplash.com/photo-1546435770-a3e736769a50?w=600', 29, 7, 2),
+(48, 'Tai nghe Marshall Monitor II ANC', 'ANC hybrid tùy chỉnh, driver 40mm Marshall, pin 30 giờ ANC on, âm trầm căng.', 11000000, 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600', 29, 7, 2),
 (11, 'SSD Samsung 990 Pro 1TB NVMe M.2', 'Đọc 7450 MB/s, ghi 6900 MB/s, PCIe 4.0 x4 NVMe 2.0, Dynamic Thermal Guard.', 16000000, 'https://images.unsplash.com/photo-1597872200919-281df04a91d1?w=600', 54, 8, 1),
 (33, 'SSD Kingston NV2 1TB PCIe 4.0 NVMe', 'Đọc 3500 MB/s, ghi 2100 MB/s, M.2 2280, nâng cấp laptop và PC phổ thông.', 17000000, 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=600', 11, 8, 1),
 (34, 'SSD WD Black SN850X 2TB PCIe Gen4', 'Đọc 7300 MB/s, ghi 6600 MB/s, tương thích PS5 và PC, Gaming Mode tự tối ưu.', 18000000, 'https://images.unsplash.com/photo-1628557044797-f21a177c37ec?w=600', 10, 8, 2),
@@ -292,7 +292,8 @@ INSERT INTO `order_details` (`order_id`, `product_id`, `quantity`, `price`) VALU
 -- =========================
 -- 5. Sửa lỗi font tiếng Việt cho khách hàng, cửa hàng bị móp méo ký tự
 UPDATE customers SET full_name = REPLACE(full_name, 'Nguyá»…n VÄƒn KhÃ¡nh HÃ ng', 'Nguyễn Văn Khánh Hàng');
-   OR image_url IS NULL 
+
+UPDATE products SET image_url = 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=500' 
+WHERE image_url IS NULL 
    OR image_url = ''
    OR image_url NOT LIKE 'http%';
-

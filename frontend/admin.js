@@ -397,7 +397,7 @@ async function loadAdminOrders() {
         optionsHtml += `<option value="${status.val}" ${isSelected}>${status.txt}</option>`;
       });
 
-      // Hiển thị thêm ghi chú, CCCD, PTTT và Email người nhận
+      // Hiển thị thêm ghi chú, PTTT và Email người nhận
       let detailsMeta = `
         <div class="text-[10px] text-slate-500 mt-1.5 space-y-0.5 border-t border-slate-100 pt-1.5 font-semibold">
           <div><strong class="text-slate-700">Người nhận:</strong> ${order.recipient_name || order.full_name}</div>
@@ -405,7 +405,6 @@ async function loadAdminOrders() {
           ${order.recipient_email ? `<div><strong class="text-slate-700">Email:</strong> ${order.recipient_email}</div>` : ''}
           <div><strong class="text-slate-700">Đ/C nhận:</strong> ${order.shipping_address}</div>
           <div><strong class="text-slate-700">PTTT:</strong> ${order.payment_method === 'cod' ? 'Thanh toán COD' : order.payment_method === 'bank_transfer' ? 'Chuyển khoản' : 'Ví điện tử'}</div>
-          ${order.cccd ? `<div><strong class="text-slate-700">CCCD:</strong> ${order.cccd}</div>` : ''}
           ${order.notes ? `<div class="italic text-amber-600"><strong class="text-slate-700">Ghi chú:</strong> ${order.notes}</div>` : ''}
         </div>
       `;

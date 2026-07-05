@@ -153,13 +153,13 @@
           </div>
 
           <!-- Form thanh toán thực tế (Chỉ hiện khi đã đăng nhập) -->
-          <form id="form-checkout" class="space-y-4 hidden">
+          <form id="form-checkout" class="space-y-4 hidden" novalidate>
             <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Thông tin địa chỉ giao nhận</h3>
             <div>
               <label for="checkout-fullname"
                 class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Họ tên người nhận
                 *</label>
-              <input type="text" id="checkout-fullname" required
+              <input type="text" id="checkout-fullname"
                 class="w-full bg-white border border-slate-350 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -167,7 +167,7 @@
                 <label for="checkout-phone"
                   class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Số điện thoại
                   *</label>
-                <input type="tel" id="checkout-phone" required
+                <input type="tel" id="checkout-phone"
                   class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800">
               </div>
               <div>
@@ -183,31 +183,21 @@
               <label for="checkout-address"
                 class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Địa chỉ giao hàng chi
                 tiết *</label>
-              <textarea id="checkout-address" rows="2" required
+              <textarea id="checkout-address" rows="2"
                 class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800"
                 placeholder="Ví dụ: 789 Đường 3/2, Phường 12, Quận 10, TP. HCM"></textarea>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label for="checkout-payment"
-                  class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Phương thức thanh
-                  toán *</label>
-                <select id="checkout-payment" required
-                  class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-850 cursor-pointer">
-                  <option value="cod">Thanh toán khi nhận hàng (COD)</option>
-                  <option value="bank_transfer">Chuyển khoản ngân hàng</option>
-                  <option value="e_wallet">Ví điện tử Demo (Momo/ZaloPay)</option>
-                </select>
-              </div>
-              <div>
-                <label for="checkout-cccd"
-                  class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Số CCCD (Tùy
-                  chọn)</label>
-                <input type="text" id="checkout-cccd"
-                  class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-800"
-                  placeholder="Nhập 12 số căn cước công dân...">
-              </div>
+            <div>
+              <label for="checkout-payment"
+                class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Phương thức thanh
+                toán *</label>
+              <select id="checkout-payment"
+                class="w-full bg-white border border-slate-355 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 transition-all text-slate-850 cursor-pointer">
+                <option value="cod">Thanh toán khi nhận hàng (COD)</option>
+                <option value="bank_transfer">Chuyển khoản ngân hàng</option>
+                <option value="e_wallet">Ví điện tử Demo (Momo/ZaloPay)</option>
+              </select>
             </div>
 
             <div>
@@ -241,8 +231,8 @@
     </div>
   </footer>
 
-  <script src="app.js"></script>
-  <script src="cart.js"></script>
+  <script src="app.js?v=2"></script>
+  <script src="cart.js?v=2"></script>
 </body>
 
 </html>

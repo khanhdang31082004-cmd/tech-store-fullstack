@@ -23,5 +23,3 @@ UPDATE products SET description = REPLACE(description, 'Chuá»™t gaming', 'Ch
 UPDATE products SET description = REPLACE(description, 'MÃ n hÃ¬nh', 'Màn hình');
 UPDATE products SET description = REPLACE(description, 'thá» i gian pháº£n há»“i', 'thời gian phản hồi');
 UPDATE products SET description = REPLACE(description, 'Thiáº¿t káº¿', 'Thiết kế');
-
--- Đã gỡ bỏ script chèn dữ liệu test (example.com) rác ra khỏi file này.
