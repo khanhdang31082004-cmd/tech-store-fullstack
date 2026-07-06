@@ -1494,6 +1494,208 @@ app.delete('/api/admin/stores/:id', authenticateToken, isAdmin, async (req, res)
 });
 
 // =========================================================================
+// 6.7 API BỔ SUNG - DOANH THU THEO NGÀY, HỦY ĐƠN, TÌM KIẾM GỢI Ý, XUẤT CSV
+// =========================================================================
+
+// API Doanh thu theo ngày trong 30 ngày gần nhất (cho biểu đồ Chart.js)
+app.get('/api/admin/revenue-chart', authenticateToken, isStaff, async (req, res) => {
+  const isSysAdmin = req.user.role_name === 'admin';
+  const storeId = req.user.store_id;
+  const { period } = req.query; // 'daily' | 'monthly'
+
+  try {
+    let rows;
+    if (period === 'monthly') {
+      // Doanh thu theo tháng trong 12 tháng gần nhất
+      if (isSysAdmin) {
+        [rows] = await pool.query(`
+          SELECT DATE_FORMAT(o.created_at, '%Y-%m') AS period_label,
+                 SUM(o.total_amount) AS revenue,
+                 COUNT(o.id) AS order_count
+          FROM orders o
+          WHERE o.status = 'Completed'
+            AND o.created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+          GROUP BY period_label
+          ORDER BY period_label ASC
+        `);
+      } else {
+        [rows] = await pool.query(`
+          SELECT DATE_FORMAT(o.created_at, '%Y-%m') AS period_label,
+                 SUM(od.quantity * od.price) AS revenue,
+                 COUNT(DISTINCT o.id) AS order_count
+          FROM orders o
+          JOIN order_details od ON o.id = od.order_id
+          JOIN products p ON od.product_id = p.id
+          WHERE o.status = 'Completed' AND p.store_id = ?
+            AND o.created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+          GROUP BY period_label
+          ORDER BY period_label ASC
+        `, [storeId]);
+      }
+    } else {
+      // Doanh thu theo ngày trong 30 ngày gần nhất (mặc định)
+      if (isSysAdmin) {
+        [rows] = await pool.query(`
+          SELECT DATE_FORMAT(o.created_at, '%Y-%m-%d') AS period_label,
+                 SUM(o.total_amount) AS revenue,
+                 COUNT(o.id) AS order_count
+          FROM orders o
+          WHERE o.status = 'Completed'
+            AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+          GROUP BY period_label
+          ORDER BY period_label ASC
+        `);
+      } else {
+        [rows] = await pool.query(`
+          SELECT DATE_FORMAT(o.created_at, '%Y-%m-%d') AS period_label,
+                 SUM(od.quantity * od.price) AS revenue,
+                 COUNT(DISTINCT o.id) AS order_count
+          FROM orders o
+          JOIN order_details od ON o.id = od.order_id
+          JOIN products p ON od.product_id = p.id
+          WHERE o.status = 'Completed' AND p.store_id = ?
+            AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+          GROUP BY period_label
+          ORDER BY period_label ASC
+        `, [storeId]);
+      }
+    }
+
+    return res.status(200).json({
+      labels: rows.map(r => r.period_label),
+      revenue: rows.map(r => parseFloat(r.revenue || 0)),
+      order_count: rows.map(r => parseInt(r.order_count || 0))
+    });
+  } catch (error) {
+    console.error('Lỗi lấy dữ liệu biểu đồ doanh thu:', error);
+    return res.status(500).json({ message: 'Không thể tải dữ liệu biểu đồ.', error: error.message });
+  }
+});
+
+// API Tìm kiếm sản phẩm gợi ý realtime (auto-suggest)
+app.get('/api/products/search-suggest', async (req, res) => {
+  const { q } = req.query;
+  if (!q || q.trim().length < 2) {
+    return res.status(200).json([]);
+  }
+
+  try {
+    const [products] = await pool.query(
+      `SELECT p.id, p.product_name, p.price, p.image_url, c.category_name
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.product_name LIKE ?
+       ORDER BY p.stock_quantity DESC, p.id DESC
+       LIMIT 8`,
+      [`%${q.trim()}%`]
+    );
+    return res.status(200).json(products);
+  } catch (error) {
+    return res.status(500).json({ message: 'Lỗi tìm kiếm.', error: error.message });
+  }
+});
+
+// API Khách hàng tự hủy đơn hàng đang Pending
+app.put('/api/orders/:id/cancel', authenticateToken, async (req, res) => {
+  const orderId = req.params.id;
+
+  try {
+    // Tìm đơn hàng của khách hàng này
+    const [customers] = await pool.query('SELECT id FROM customers WHERE user_id = ?', [req.user.id]);
+    if (customers.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy hồ sơ khách hàng.' });
+    }
+
+    const customerId = customers[0].id;
+    const [orders] = await pool.query('SELECT id, status FROM orders WHERE id = ? AND customer_id = ?', [orderId, customerId]);
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: 'Đơn hàng không tồn tại hoặc không thuộc về bạn.' });
+    }
+
+    const order = orders[0];
+    if (order.status !== 'Pending') {
+      return res.status(400).json({ message: `Không thể hủy đơn hàng ở trạng thái "${order.status}". Chỉ đơn hàng "Pending" mới được hủy.` });
+    }
+
+    // Hoàn trả số lượng tồn kho khi hủy đơn
+    const [details] = await pool.query('SELECT product_id, quantity FROM order_details WHERE order_id = ?', [orderId]);
+    for (const item of details) {
+      await pool.query('UPDATE products SET stock_quantity = stock_quantity + ? WHERE id = ?', [item.quantity, item.product_id]);
+    }
+
+    await pool.query('UPDATE orders SET status = ? WHERE id = ?', ['Cancelled', orderId]);
+
+    return res.status(200).json({ message: 'Hủy đơn hàng thành công! Số lượng hàng tồn kho đã được hoàn trả.' });
+  } catch (error) {
+    console.error('Lỗi hủy đơn hàng:', error);
+    return res.status(500).json({ message: 'Không thể hủy đơn hàng.', error: error.message });
+  }
+});
+
+// API Xuất danh sách đơn hàng dạng CSV (Admin/Owner/Manager)
+app.get('/api/admin/export/orders', authenticateToken, isManager, async (req, res) => {
+  const isSysAdmin = req.user.role_name === 'admin';
+  const storeId = req.user.store_id;
+  const { status } = req.query;
+
+  try {
+    let sql = `
+      SELECT o.id, o.created_at, o.status, o.total_amount, o.payment_method,
+             o.recipient_name, o.recipient_phone, o.recipient_email,
+             o.shipping_address, o.notes, c.full_name AS customer_name
+      FROM orders o
+      JOIN customers c ON o.customer_id = c.id
+    `;
+    const params = [];
+
+    if (!isSysAdmin) {
+      sql += ` JOIN order_details od ON o.id = od.order_id JOIN products p ON od.product_id = p.id WHERE p.store_id = ?`;
+      params.push(storeId);
+      if (status) {
+        sql += ` AND o.status = ?`;
+        params.push(status);
+      }
+      sql += ` GROUP BY o.id`;
+    } else {
+      if (status) {
+        sql += ` WHERE o.status = ?`;
+        params.push(status);
+      }
+    }
+    sql += ` ORDER BY o.id DESC`;
+
+    const [orders] = await pool.query(sql, params);
+
+    // Tạo nội dung CSV
+    const header = ['Mã ĐH', 'Ngày đặt', 'Trạng thái', 'Tổng tiền (VND)', 'Thanh toán', 'Tên người nhận', 'SĐT', 'Email', 'Địa chỉ giao', 'Ghi chú', 'Tên khách hàng'];
+    const rows = orders.map(o => [
+      `#DH-${String(o.id).padStart(4, '0')}`,
+      new Date(o.created_at).toLocaleString('vi-VN'),
+      o.status,
+      parseFloat(o.total_amount).toLocaleString('vi-VN'),
+      o.payment_method === 'cod' ? 'COD' : o.payment_method === 'bank_transfer' ? 'Chuyển khoản' : 'Ví điện tử',
+      o.recipient_name || '',
+      o.recipient_phone || '',
+      o.recipient_email || '',
+      o.shipping_address || '',
+      o.notes || '',
+      o.customer_name || ''
+    ]);
+
+    const csvContent = [header, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const bom = '\uFEFF'; // BOM UTF-8 để Excel hiển thị đúng tiếng Việt
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="don_hang_${new Date().toISOString().slice(0, 10)}.csv"`);
+    return res.status(200).send(bom + csvContent);
+  } catch (error) {
+    console.error('Lỗi xuất CSV:', error);
+    return res.status(500).json({ message: 'Không thể xuất dữ liệu đơn hàng.', error: error.message });
+  }
+});
+
+// =========================================================================
 // 7. GLOBAL ERROR HANDLER & CHẠY SERVER
 // =========================================================================
 

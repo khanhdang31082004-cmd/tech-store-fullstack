@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KHÁNH STORE - Hệ Thống Thiết Bị Công Nghệ Cao Cấp</title>
-  <!-- Nhúng TailwindCSS CDN -->
+  <meta name="description" content="KHÁNH STORE - Hệ thống phân phối laptop, điện thoại, thiết bị công nghệ chính hãng hàng đầu Việt Nam. Bảo hành vàng, giao hàng tận nơi.">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -25,7 +25,6 @@
       }
     }
   </script>
-  <!-- Nhúng stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col font-sans">
@@ -34,7 +33,7 @@
        1. HEADER CÔNG NGHỆ CHUYÊN NGHIỆP (STICKY)
        ========================================================================= -->
   <header class="bg-cyber-900 text-white sticky top-0 z-40 shadow-2xl border-b border-cyber-800">
-    
+
     <!-- Topbar phụ thông tin shop -->
     <div class="bg-black/45 py-2 px-4 text-xs text-slate-400 border-b border-cyber-900/60 hidden sm:block">
       <div class="max-w-7xl mx-auto flex items-center justify-between">
@@ -55,22 +54,28 @@
     <!-- Main Header -->
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3.5">
       <div class="flex flex-wrap md:flex-nowrap items-center justify-between gap-y-3 gap-x-2 md:gap-6">
-        
+
         <!-- Logo bên trái -->
         <a href="index.html" class="flex flex-col flex-shrink-0 hover:opacity-90 transition-opacity">
           <span class="text-xl sm:text-2xl font-black tracking-widest bg-gradient-to-r from-cyber-500 to-cyan-300 bg-clip-text text-transparent leading-none">KHÁNH</span>
           <span class="text-[9px] sm:text-xs font-bold tracking-[0.2em] text-white">TECH STORE</span>
         </a>
 
-        <!-- Ô tìm kiếm (Full width on mobile, middle on desktop) -->
-        <div class="flex-grow w-full md:w-auto order-last md:order-none md:max-w-2xl mt-2 md:mt-0">
-          <form onsubmit="handleSearch(event)" class="flex bg-cyber-800 border border-cyber-700 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-cyber-500 transition-all">
-            <input type="text" id="search-input" placeholder="Nhập tên sản phẩm, từ khóa..." class="w-full bg-transparent pl-4 pr-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none">
-            <button type="submit" class="px-4 sm:px-6 bg-cyber-500 hover:bg-cyan-500 text-black font-bold flex items-center gap-1 sm:gap-2 transition-colors">
+        <!-- Ô tìm kiếm với Auto-suggest -->
+        <div class="flex-grow w-full md:w-auto order-last md:order-none md:max-w-2xl mt-2 md:mt-0 search-wrapper">
+          <form onsubmit="handleSearch(event)" class="flex bg-cyber-800 border border-cyber-700 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-cyber-500 transition-all" autocomplete="off">
+            <input type="text" id="search-input" placeholder="Nhập tên sản phẩm, từ khóa..." autocomplete="off"
+              class="w-full bg-transparent pl-4 pr-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none"
+              oninput="handleSearchInput(this.value)"
+              onfocus="if(this.value.length>=2) showSuggestDropdown()"
+              onblur="setTimeout(hideSuggestDropdown, 200)">
+            <button type="submit" class="px-4 sm:px-6 bg-cyber-500 hover:bg-cyan-500 text-black font-bold flex items-center gap-1 sm:gap-2 transition-colors flex-shrink-0">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               <span class="hidden sm:inline">Tìm kiếm</span>
             </button>
           </form>
+          <!-- Dropdown Gợi ý tìm kiếm -->
+          <div id="search-suggest-dropdown" class="hidden"></div>
         </div>
 
         <!-- Nhóm chức năng bên phải -->
@@ -81,7 +86,7 @@
             <span id="current-store-label" class="font-bold hidden sm:block">Hệ thống</span>
           </button>
 
-          <!-- Icon giỏ hàng với Badge số lượng -->
+          <!-- Icon giỏ hàng -->
           <button onclick="toggleCartDrawer(true)" class="relative flex flex-col items-center justify-center gap-0.5 text-[10px] sm:text-xs text-slate-300 hover:text-white transition-colors">
             <div class="relative">
               <svg class="w-5 h-5 sm:w-6 sm:h-6 text-cyber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -93,42 +98,39 @@
           <!-- Khu vực Đăng nhập / Chào mừng -->
           <div id="nav-auth-container" class="flex flex-col items-center justify-center gap-0.5 text-[10px] sm:text-xs text-slate-300 hover:text-white transition-colors"></div>
         </div>
-
       </div>
     </div>
   </header>
 
   <!-- NÚT ZALO FIXED -->
-  <a class="zalo-float" href="https://zalo.me/0123456789" target="_blank">
+  <a class="zalo-float" href="https://zalo.me/0348660610" target="_blank" rel="noopener">
     <span class="zalo-icon">💬</span>
-    <span>Zalo</span>
+    <span class="hidden sm:inline">Zalo</span>
   </a>
 
   <!-- =========================================================================
        2. KHU VỰC CHÍNH: SIDEBAR TRÁI + NỘI DUNG PHẢI
        ========================================================================= -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col md:flex-row gap-6 py-6 flex-grow">
-    
-    <!-- Sidebar Danh Mục Sản Phẩm (Bên trái) -->
+
+    <!-- Sidebar Danh Mục Sản Phẩm -->
     <aside class="w-full md:w-64 flex-shrink-0">
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 sticky top-24 overflow-hidden">
         <div class="bg-cyber-900 px-4 py-3 border-b border-slate-200 flex items-center gap-2">
           <svg class="w-5 h-5 text-cyber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
           <h2 class="text-sm font-bold uppercase tracking-wider text-white">Danh mục sản phẩm</h2>
-        </div>          
+        </div>
         <div class="flex flex-col p-2" id="categories-filter">
-          <!-- Nút hiển thị tất cả -->
-          <button onclick="filterCategory(null)" id="cat-btn-all" data-category-id="all" class="category-btn text-left px-3.5 py-2.5 rounded-xl text-sm font-black bg-sky-50 text-sky-700 active transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer">
+          <button onclick="filterCategory(null)" id="cat-btn-all" data-category-id="all"
+            class="category-btn text-left px-3.5 py-2.5 rounded-xl text-sm font-black bg-sky-50 text-sky-700 active transition-all flex items-center justify-between w-full border-0 focus:outline-none cursor-pointer">
             <span>Tất cả sản phẩm</span>
             <span class="w-1.5 h-1.5 rounded-full bg-cyber-500"></span>
           </button>
-          
-          <!-- Danh sách danh mục được nạp động từ API -->
           <div id="dynamic-categories-list" class="flex flex-col w-full mt-1">
-            <!-- Loading Skeleton -->
             <div class="animate-pulse space-y-2 p-2">
               <div class="h-4 bg-slate-100 rounded w-full"></div>
               <div class="h-4 bg-slate-100 rounded w-5/6"></div>
+              <div class="h-4 bg-slate-100 rounded w-4/6"></div>
             </div>
           </div>
         </div>
@@ -136,72 +138,176 @@
     </aside>
 
     <!-- Vùng hiển thị nội dung chính -->
-    <section class="flex-grow flex flex-col gap-6 w-full max-w-full overflow-hidden">
-      
-      <!-- HERO BANNER -->
-      <div class="relative rounded-xl overflow-hidden shadow-sm h-[200px] sm:h-[300px] md:h-[400px] bg-cyber-900 border border-cyber-800" id="banner-slider">
-        <!-- Slide 1 -->
-        <div class="banner-slide absolute inset-0 transition-opacity duration-700 flex items-center" data-slide="0">
+    <section class="flex-grow flex flex-col gap-5 w-full max-w-full overflow-hidden">
+
+      <!-- HERO BANNER với auto-slide + điều hướng -->
+      <div class="relative rounded-xl overflow-hidden shadow-sm h-[200px] sm:h-[300px] md:h-[380px] bg-cyber-900 border border-cyber-800" id="banner-slider">
+
+        <!-- Slide 1 - Laptop Gaming -->
+        <div class="banner-slide absolute inset-0 transition-opacity duration-700 flex items-center opacity-100" data-slide="0">
           <img src="https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=1200" alt="Laptop Gaming Banner" class="absolute inset-0 w-full h-full object-cover opacity-60">
           <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
           <div class="relative z-10 px-8 md:px-16 max-w-xl text-white">
             <span class="px-3 py-1 text-xs bg-cyber-500 text-black font-black rounded mb-4 inline-block uppercase tracking-widest shadow-md">Khuyến mãi cực hot</span>
-            <h2 class="text-2xl sm:text-3xl md:text-5xl font-black mb-4 leading-tight">Laptop Gaming <br/><span class="text-cyber-500">ASUS ROG</span></h2>
-            <p class="text-sm md:text-base text-slate-200 mb-6 hidden sm:block">Trang bị bộ xử lý AMD Ryzen 9 đỉnh cao cùng card đồ họa rời RTX 4060 chiến mọi tựa game đồ họa nặng mượt mà nhất.</p>
-            <button onclick="document.getElementById('products-container').scrollIntoView({behavior: 'smooth'})" class="px-6 py-3 rounded text-sm bg-cyber-500 hover:bg-cyan-400 text-black font-bold transition-all shadow-lg hover:-translate-y-1">Mua sắm ngay</button>
+            <h2 class="text-2xl sm:text-3xl md:text-5xl font-black mb-3 leading-tight">Laptop Gaming <br/><span class="text-cyber-500">ASUS ROG</span></h2>
+            <p class="text-sm md:text-base text-slate-200 mb-6 hidden sm:block">AMD Ryzen 9 + RTX 4060 - Chiến mọi tựa game đỉnh nhất.</p>
+            <button onclick="filterCategory(null); document.getElementById('products-container').scrollIntoView({behavior:'smooth'})" class="px-6 py-3 rounded text-sm bg-cyber-500 hover:bg-cyan-400 text-black font-bold transition-all shadow-lg hover:-translate-y-1">Mua sắm ngay →</button>
           </div>
+        </div>
+
+        <!-- Slide 2 - Điện thoại -->
+        <div class="banner-slide absolute inset-0 transition-opacity duration-700 flex items-center" data-slide="1">
+          <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=1200" alt="Điện thoại Banner" class="absolute inset-0 w-full h-full object-cover opacity-55">
+          <div class="absolute inset-0 bg-gradient-to-r from-indigo-900/90 via-purple-900/50 to-transparent"></div>
+          <div class="relative z-10 px-8 md:px-16 max-w-xl text-white">
+            <span class="px-3 py-1 text-xs bg-violet-500 text-white font-black rounded mb-4 inline-block uppercase tracking-widest shadow-md">Flagship 2026</span>
+            <h2 class="text-2xl sm:text-3xl md:text-5xl font-black mb-3 leading-tight">iPhone & Samsung<br/><span class="text-violet-400">Mới nhất về</span></h2>
+            <p class="text-sm md:text-base text-slate-200 mb-6 hidden sm:block">Điện thoại flagship chính hãng, bảo hành 12 tháng toàn quốc.</p>
+            <button onclick="filterCategory(null); document.getElementById('products-container').scrollIntoView({behavior:'smooth'})" class="px-6 py-3 rounded text-sm bg-violet-500 hover:bg-violet-400 text-white font-bold transition-all shadow-lg hover:-translate-y-1">Khám phá ngay →</button>
+          </div>
+        </div>
+
+        <!-- Slide 3 - Phụ kiện -->
+        <div class="banner-slide absolute inset-0 transition-opacity duration-700 flex items-center" data-slide="2">
+          <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200" alt="Phụ kiện Banner" class="absolute inset-0 w-full h-full object-cover opacity-55">
+          <div class="absolute inset-0 bg-gradient-to-r from-emerald-900/90 via-teal-900/50 to-transparent"></div>
+          <div class="relative z-10 px-8 md:px-16 max-w-xl text-white">
+            <span class="px-3 py-1 text-xs bg-emerald-400 text-black font-black rounded mb-4 inline-block uppercase tracking-widest shadow-md">Ưu đãi hôm nay</span>
+            <h2 class="text-2xl sm:text-3xl md:text-5xl font-black mb-3 leading-tight">Phụ kiện<br/><span class="text-emerald-400">Công nghệ</span></h2>
+            <p class="text-sm md:text-base text-slate-200 mb-6 hidden sm:block">Tai nghe, bàn phím, chuột gaming chính hãng giảm đến 30%.</p>
+            <button onclick="filterCategory(null); document.getElementById('products-container').scrollIntoView({behavior:'smooth'})" class="px-6 py-3 rounded text-sm bg-emerald-400 hover:bg-emerald-300 text-black font-bold transition-all shadow-lg hover:-translate-y-1">Xem ngay →</button>
+          </div>
+        </div>
+
+        <!-- Nút Prev / Next -->
+        <button onclick="slideBanner(-1)" class="banner-nav-btn" style="left:12px" aria-label="Slide trước">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button onclick="slideBanner(1)" class="banner-nav-btn" style="right:12px" aria-label="Slide tiếp">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <!-- Dots Indicator -->
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10" id="banner-dots">
+          <button onclick="goToSlide(0)" class="banner-dot active" id="dot-0"></button>
+          <button onclick="goToSlide(1)" class="banner-dot" id="dot-1"></button>
+          <button onclick="goToSlide(2)" class="banner-dot" id="dot-2"></button>
         </div>
       </div>
 
+      <!-- SECTION THƯƠNG HIỆU ĐỐI TÁC -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-3 text-center">Thương hiệu chính hãng</h3>
+        <div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
+          <div class="brand-logo-card"><span>ASUS</span></div>
+          <div class="brand-logo-card"><span>Apple</span></div>
+          <div class="brand-logo-card"><span>Samsung</span></div>
+          <div class="brand-logo-card"><span>Dell</span></div>
+          <div class="brand-logo-card"><span>MSI</span></div>
+          <div class="brand-logo-card"><span>Lenovo</span></div>
+          <div class="brand-logo-card"><span>Sony</span></div>
+          <div class="brand-logo-card"><span>Logitech</span></div>
+        </div>
+      </div>
+
+      <!-- THANH LỌC SẢN PHẨM -->
+      <div id="filter-bar">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+          <span class="text-xs font-black text-slate-600 uppercase tracking-wider">Lọc & Sắp xếp</span>
+        </div>
+
+        <!-- Khoảng giá -->
+        <select id="filter-price" onchange="applyFilters()" class="focus:ring-0">
+          <option value="">Tất cả mức giá</option>
+          <option value="0-5000000">Dưới 5 triệu</option>
+          <option value="5000000-10000000">5 - 10 triệu</option>
+          <option value="10000000-20000000">10 - 20 triệu</option>
+          <option value="20000000-35000000">20 - 35 triệu</option>
+          <option value="35000000-99999999">Trên 35 triệu</option>
+        </select>
+
+        <!-- Sắp xếp -->
+        <select id="filter-sort" onchange="applyFilters()" class="focus:ring-0">
+          <option value="">Mặc định (Mới nhất)</option>
+          <option value="price-asc">Giá: Thấp đến cao</option>
+          <option value="price-desc">Giá: Cao đến thấp</option>
+          <option value="name-asc">Tên: A → Z</option>
+          <option value="in-stock">Còn hàng trước</option>
+        </select>
+
+        <!-- Badge filter đang active -->
+        <div id="active-filters-container" class="flex flex-wrap gap-2"></div>
+
+        <!-- Reset filters -->
+        <button id="btn-reset-filters" onclick="resetFilters()" class="text-xs font-bold text-rose-500 hover:text-rose-600 transition-colors hidden flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Xóa bộ lọc
+        </button>
+      </div>
+
       <!-- Tiêu đề phần sản phẩm -->
-      <div class="flex items-center justify-between mt-4">
+      <div class="flex items-center justify-between">
         <h2 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight relative pl-4 border-l-4 border-cyber-500" id="section-title">Tất cả sản phẩm</h2>
         <span class="text-xs text-slate-500 font-medium bg-white border border-slate-200 px-3 py-1 rounded-full" id="products-count">Đang tải...</span>
       </div>
 
       <!-- Grid Sản phẩm -->
-      <div id="products-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+      <div id="products-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         <!-- Loading skeleton -->
-        <div class="bg-white rounded-lg border border-slate-200 p-3 shadow-sm animate-pulse space-y-4">
+        <div class="bg-white rounded-lg border border-slate-200 p-3 shadow-sm animate-pulse space-y-3">
           <div class="bg-slate-100 aspect-square rounded-lg"></div>
           <div class="h-4 bg-slate-100 rounded w-3/4"></div>
           <div class="h-4 bg-slate-100 rounded w-1/2"></div>
-          <div class="h-8 bg-slate-100 rounded w-full mt-4"></div>
+          <div class="h-8 bg-slate-100 rounded w-full"></div>
+        </div>
+        <div class="bg-white rounded-lg border border-slate-200 p-3 shadow-sm animate-pulse space-y-3">
+          <div class="bg-slate-100 aspect-square rounded-lg"></div>
+          <div class="h-4 bg-slate-100 rounded w-3/4"></div>
+          <div class="h-4 bg-slate-100 rounded w-1/2"></div>
+          <div class="h-8 bg-slate-100 rounded w-full"></div>
+        </div>
+        <div class="hidden sm:block bg-white rounded-lg border border-slate-200 p-3 shadow-sm animate-pulse space-y-3">
+          <div class="bg-slate-100 aspect-square rounded-lg"></div>
+          <div class="h-4 bg-slate-100 rounded w-3/4"></div>
+          <div class="h-4 bg-slate-100 rounded w-1/2"></div>
+          <div class="h-8 bg-slate-100 rounded w-full"></div>
+        </div>
+        <div class="hidden lg:block bg-white rounded-lg border border-slate-200 p-3 shadow-sm animate-pulse space-y-3">
+          <div class="bg-slate-100 aspect-square rounded-lg"></div>
+          <div class="h-4 bg-slate-100 rounded w-3/4"></div>
+          <div class="h-4 bg-slate-100 rounded w-1/2"></div>
+          <div class="h-8 bg-slate-100 rounded w-full"></div>
         </div>
       </div>
+
+      <!-- PHÂN TRANG -->
+      <div id="pagination-container"></div>
 
     </section>
   </main>
 
   <!-- =========================================================================
-       3. MODAL CHI TIẾT SẢN PHẨM (POPUP DIALOG)
+       3. MODAL CHI TIẾT SẢN PHẨM
        ========================================================================= -->
   <div id="product-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
-    <!-- Nền xám mờ -->
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeProductDetailModal()"></div>
-    
     <div class="bg-white rounded-xl w-full max-w-[1000px] shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col mx-4 transform scale-95 transition-transform duration-300" id="modal-content-panel">
-      <!-- Header Modal -->
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
         <h3 class="font-bold text-lg text-slate-800">Chi tiết sản phẩm</h3>
         <button onclick="closeProductDetailModal()" class="text-slate-400 hover:text-rose-500 p-1.5 rounded-full hover:bg-rose-50 transition-colors focus:outline-none">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-
-      <!-- Nội dung sản phẩm (Scrollable) -->
-      <div class="overflow-y-auto p-6 flex-grow" id="product-detail-content">
-        <!-- Đổ từ hàm showProductDetail() trong app.js -->
-      </div>
+      <div class="overflow-y-auto p-6 flex-grow" id="product-detail-content"></div>
     </div>
   </div>
 
   <!-- =========================================================================
-       4. CART DRAWER (GIỎ HÀNG TRƯỢT TỪ BÊN PHẢI)
+       4. CART DRAWER
        ========================================================================= -->
   <div id="cart-drawer-overlay" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden transition-opacity" onclick="toggleCartDrawer(false)"></div>
   <div id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-[400px] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
-    <!-- Drawer Header -->
     <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-cyber-900 text-white">
       <h2 class="text-base font-bold uppercase tracking-wider flex items-center gap-2">
         <svg class="w-5 h-5 text-cyber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -211,13 +317,7 @@
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </div>
-
-    <!-- Drawer Body (Danh sách SP) -->
-    <div id="cart-drawer-items" class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50">
-      <!-- Nạp động từ renderCartDrawer() -->
-    </div>
-
-    <!-- Drawer Footer (Tổng tiền & Nút) -->
+    <div id="cart-drawer-items" class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50"></div>
     <div class="p-5 border-t border-slate-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
       <div class="flex justify-between items-center mb-4">
         <span class="text-sm font-semibold text-slate-500">Tạm tính:</span>
@@ -245,61 +345,69 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      <div class="p-4 space-y-3 max-h-64 overflow-y-auto">
-        <div onclick="selectStore(1, 'Tech Store Q1')" class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg hover:border-cyan-400 cursor-pointer transition-colors">
-          <h4 class="font-bold text-slate-800 text-sm">Tech Store Q1</h4>
-          <p class="text-xs text-slate-600 mt-1">123 Nguyễn Huệ, Quận 1, TP. HCM</p>
-          <p class="text-xs text-slate-600">ĐT: 028 1234 567</p>
-          <span class="inline-block mt-2 px-2 py-0.5 text-[10px] bg-emerald-100 text-emerald-800 rounded font-bold uppercase">Đang hoạt động</span>
-        </div>
-        <div onclick="selectStore(2, 'Tech Store Cầu Giấy')" class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg hover:border-cyan-400 cursor-pointer transition-colors">
-          <h4 class="font-bold text-slate-800 text-sm">Tech Store Cầu Giấy</h4>
-          <p class="text-xs text-slate-600 mt-1">456 Cầu Giấy, Quận Cầu Giấy, Hà Nội</p>
-          <p class="text-xs text-slate-600">ĐT: 024 1234 567</p>
-          <span class="inline-block mt-2 px-2 py-0.5 text-[10px] bg-emerald-100 text-emerald-800 rounded font-bold uppercase">Đang hoạt động</span>
+      <div class="p-4 space-y-3 max-h-72 overflow-y-auto" id="store-list-container">
+        <div class="animate-pulse space-y-3">
+          <div class="h-20 bg-slate-100 rounded-lg"></div>
+          <div class="h-20 bg-slate-100 rounded-lg"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ==========================================
+  <!-- =========================================================================
        6. CHÂN TRANG FOOTER
-       ========================================== -->
+       ========================================================================= -->
   <footer class="bg-cyber-900 text-slate-300 border-t border-cyber-800 mt-auto">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-sm">
         <div>
           <h3 class="text-lg font-black text-white mb-4"><span class="text-cyber-500">KHÁNH</span> STORE</h3>
-          <p class="text-slate-400 leading-relaxed text-xs">
-            Hệ thống phân phối thiết bị công nghệ chính hãng hàng đầu tại Việt Nam. Cam kết chất lượng, bảo hành chuẩn hãng và dịch vụ tận tâm nhất.
-          </p>
+          <p class="text-slate-400 leading-relaxed text-xs">Hệ thống phân phối thiết bị công nghệ chính hãng hàng đầu tại Việt Nam. Cam kết chất lượng, bảo hành chuẩn hãng và dịch vụ tận tâm nhất.</p>
+          <div class="flex gap-3 mt-4">
+            <a href="https://zalo.me/0348660610" target="_blank" class="w-8 h-8 rounded-full bg-cyber-800 hover:bg-cyber-500 flex items-center justify-center transition-colors text-slate-400 hover:text-black text-xs font-black">Z</a>
+            <a href="#" class="w-8 h-8 rounded-full bg-cyber-800 hover:bg-blue-600 flex items-center justify-center transition-colors text-slate-400 hover:text-white text-xs font-black">f</a>
+          </div>
         </div>
         <div>
           <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 border-l-2 border-cyber-500 pl-3">Thông tin liên hệ</h3>
           <ul class="space-y-2 text-xs">
-            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg> Hotline: <strong>1800 6868</strong></li>
-            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg> Zalo: <strong>0348 660 610</strong></li>
-            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Chi nhánh 1: 123 Nguyễn Huệ, Q1, HCM</li>
-            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-slate-500" opacity="0" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg> Chi nhánh 2: 456 Cầu Giấy, HN</li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+              Hotline: <strong class="text-white">1800 6868</strong>
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
+              Zalo: <strong class="text-white">0348 660 610</strong>
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              CN1: 123 Nguyễn Huệ, Q1, HCM
+            </li>
+            <li class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              CN2: 456 Cầu Giấy, Hà Nội
+            </li>
           </ul>
         </div>
         <div>
           <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 border-l-2 border-cyber-500 pl-3">Hỗ trợ khách hàng</h3>
           <ul class="text-slate-400 space-y-2 text-xs">
-            <li><a href="#" class="hover:text-cyber-500 transition-colors">Chính sách bảo hành vàng</a></li>
-            <li><a href="#" class="hover:text-cyber-500 transition-colors">Đổi trả tận nơi 30 ngày</a></li>
-            <li><a href="#" class="hover:text-cyber-500 transition-colors">Phương thức thanh toán</a></li>
-            <li><a href="#" class="hover:text-cyber-500 transition-colors">Tra cứu đơn hàng</a></li>
+            <li><a href="#" class="hover:text-cyber-500 transition-colors flex items-center gap-1.5"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>Chính sách bảo hành vàng</a></li>
+            <li><a href="#" class="hover:text-cyber-500 transition-colors flex items-center gap-1.5"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>Đổi trả tận nơi 30 ngày</a></li>
+            <li><a href="#" class="hover:text-cyber-500 transition-colors flex items-center gap-1.5"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>Phương thức thanh toán</a></li>
+            <li><a href="profile.html" class="hover:text-cyber-500 transition-colors flex items-center gap-1.5"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>Tra cứu đơn hàng</a></li>
           </ul>
         </div>
       </div>
       <div class="border-t border-cyber-800 mt-8 pt-6 text-center text-slate-500 text-xs font-medium">
-        &copy; 2026 KHÁNH STORE. Tất cả bản quyền được bảo lưu.
+        &copy; 2026 KHÁNH STORE. Tất cả bản quyền được bảo lưu. Thiết kế với ❤️ tại Việt Nam.
       </div>
     </div>
   </footer>
 
-  <!-- Nhúng tệp xử lý logic chính -->
-  <script src="app.js?v=2"></script>
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <script src="app.js?v=3"></script>
 </body>
 </html>
