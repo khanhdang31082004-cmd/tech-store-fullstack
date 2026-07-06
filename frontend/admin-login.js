@@ -51,57 +51,66 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const formLogin = document.getElementById("form-login-admin");
-  if (formLogin) {
-    formLogin.addEventListener("submit", async (e) => {
+  const btnLogin = document.getElementById("btn-login-admin");
+
+  const handleAdminLogin = async (e) => {
+    if (e && e.preventDefault) {
       e.preventDefault();
-      
-      const usernameInput = document.getElementById("login-username");
-      const passwordInput = document.getElementById("login-password");
-      
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value.trim();
+    }
+    
+    const usernameInput = document.getElementById("login-username");
+    const passwordInput = document.getElementById("login-password");
+    
+    const username = usernameInput ? usernameInput.value.trim() : "";
+    const password = passwordInput ? passwordInput.value.trim() : "";
 
-      if (!username || !password) {
-        showToast("Vui lòng nhập tài khoản và mật khẩu.", "error");
-        return;
+    if (!username || !password) {
+      showToast("Vui lòng nhập tài khoản và mật khẩu.", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const text = await response.text();
+      console.log("LOGIN RESPONSE:", text);
+      const data = JSON.parse(text);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Đăng nhập thất bại.");
+      }
+      
+      // Kiểm tra quyền: chỉ cho phép role quản trị
+      const allowedRoles = ['admin', 'owner', 'manager', 'staff'];
+      if (!allowedRoles.includes(data.user.role)) {
+        throw new Error("Tài khoản khách hàng không có quyền truy cập hệ thống quản trị");
       }
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
+      // ĐĂNG NHẬP THÀNH CÔNG
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("role", data.user.role);
 
-        const text = await response.text();
-        console.log("LOGIN RESPONSE:", text);
-        const data = JSON.parse(text);
+      showToast("Đăng nhập quản trị thành công!", "success");
 
-        if (!response.ok) {
-          throw new Error(data.message || "Đăng nhập thất bại.");
-        }
-        
-        // Kiểm tra quyền: chỉ cho phép role quản trị
-        const allowedRoles = ['admin', 'owner', 'manager', 'staff'];
-        if (!allowedRoles.includes(data.user.role)) {
-          throw new Error("Tài khoản khách hàng không có quyền truy cập hệ thống quản trị");
-        }
+      setTimeout(() => {
+        window.location.href = "admin.html";
+      }, 1000);
 
-        // ĐĂNG NHẬP THÀNH CÔNG
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        localStorage.setItem("role", data.user.role);
+    } catch (error) {
+      console.error("Lỗi đăng nhập:", error);
+      showToast(error.message, "error");
+    }
+  };
 
-        showToast("Đăng nhập quản trị thành công!", "success");
-
-        setTimeout(() => {
-          window.location.href = "admin.html";
-        }, 1000);
-
-      } catch (error) {
-        console.error("Lỗi đăng nhập:", error);
-        showToast(error.message, "error");
-      }
-    });
+  if (formLogin) {
+    formLogin.addEventListener("submit", handleAdminLogin);
+  }
+  if (btnLogin) {
+    btnLogin.addEventListener("click", handleAdminLogin);
   }
 });

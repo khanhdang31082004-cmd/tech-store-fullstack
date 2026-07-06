@@ -54,7 +54,7 @@
     </div>
 
     <!-- FORM ĐĂNG NHẬP (LOGIN) -->
-    <form id="form-login-admin" class="space-y-4 mt-4">
+    <form id="form-login-admin" onsubmit="event.preventDefault(); return false;" class="space-y-4 mt-4">
       <div>
         <label for="login-username" class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Tên đăng nhập quản trị *</label>
         <input type="text" id="login-username" required class="w-full bg-cyber-900 border border-cyber-750 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 focus:border-cyber-500 transition-all text-white placeholder-slate-500" placeholder="admin">
@@ -64,7 +64,7 @@
         <input type="password" id="login-password" required class="w-full bg-cyber-900 border border-cyber-750 rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyber-500 focus:border-cyber-500 transition-all text-white placeholder-slate-500" placeholder="••••••••">
       </div>
       
-      <button type="submit" class="w-full py-3 mt-4 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-xs shadow-lg hover-scale glow-cyan transition-all flex items-center justify-center gap-2 border-0 cursor-pointer focus:outline-none">
+      <button type="button" id="btn-login-admin" class="w-full py-3 mt-4 rounded-lg bg-cyber-500 hover:bg-cyan-500 text-black font-extrabold text-xs shadow-lg hover-scale glow-cyan transition-all flex items-center justify-center gap-2 border-0 cursor-pointer focus:outline-none">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
         Truy cập trang Quản Trị
       </button>
